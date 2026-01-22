@@ -11,6 +11,9 @@
   --bg-secondary: #0b0c10;
   --bg-elevated: #15161c;
 
+  --bg-surface-1: #1e2130;
+  --bg-surface-2: #2c2f36;
+
   --border-color: #1f2026;
 
   --text-primary: #ffffff;
@@ -80,7 +83,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #2c2f36;
+  background-color: var(--bg-surface-2);
   border-radius: 4px;
 }
 

@@ -6,8 +6,6 @@ import styles from "./Chats.module.css";
 export const Chats: FC = () => {
   const hook = useChats();
 
-  console.log(hook);
-
   return (
     <div className={styles.container}>
       {/* Sidebar */}

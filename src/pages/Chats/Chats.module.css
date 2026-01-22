@@ -40,7 +40,7 @@
   min-width: 40px;
   width: 40px;
   height: 40px;
-  background-color: #2c2f36;
+  background-color: var(--bg-surface-2);
   border-radius: 50%;
   margin-right: 12px;
 }
@@ -92,7 +92,7 @@
 }
 
 .messageBubble {
-  background-color: #1e2130;
+  background-color: var(--bg-surface-1);
   padding: 12px 16px;
   border-radius: 12px;
   line-height: 1.4;
