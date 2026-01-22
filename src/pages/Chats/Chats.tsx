@@ -16,7 +16,11 @@ export const Chats: FC = () => {
           {contacts.map((contact) => (
             <li
               key={contact.id}
-              className={styles.contactItem}
+              className={`${styles.contactItem} ${
+                hook.messages.contactId === contact.id
+                  ? styles.contactItemActive
+                  : ""
+              }`}
               onClick={() => hook.navigation.onContactClick(contact.id)}
             >
               <div className={styles.avatar} />

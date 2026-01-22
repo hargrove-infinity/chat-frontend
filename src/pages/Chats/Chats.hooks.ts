@@ -81,6 +81,7 @@ export const useChatsMessages = () => {
   };
 
   return {
+    contactId,
     serverMessages,
     messages:
       contactId && Object.keys(localMessages).length
