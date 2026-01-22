@@ -6,6 +6,8 @@ import styles from "./Chats.module.css";
 export const Chats: FC = () => {
   const hook = useChats();
 
+  console.log(hook);
+
   return (
     <div className={styles.container}>
       {/* Sidebar */}
@@ -51,8 +53,16 @@ export const Chats: FC = () => {
           <textarea
             className={styles.textarea}
             placeholder="Type a message..."
+            value={hook.sendMessage.inputValue}
+            onChange={(e) => hook.sendMessage.setInputValue(e.target.value)}
+            onKeyDown={hook.sendMessage.handleKeyDown}
           />
-          <button className={styles.sendButton}>Send</button>
+          <button
+            className={styles.sendButton}
+            onClick={hook.sendMessage.handleSend}
+          >
+            Send
+          </button>
         </div>
       </main>
     </div>
