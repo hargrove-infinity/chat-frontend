@@ -1,5 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { HOME, LOGIN, CHATS, METRICS } from "../../constants/routes";
+import {
+  HOME,
+  LOGIN,
+  CHATS,
+  METRICS,
+  CHATS_CONTACT_ID,
+} from "../../constants/routes";
 import { useStore } from "../../state/store";
 import { Chats } from "../../pages/Chats/Chats";
 import { Login } from "../../pages/Login/Login";
@@ -25,6 +31,7 @@ export const Router = () => {
         </Route>
         <Route element={<ChatRoute />}>
           <Route path={CHATS} element={<Chats />} />
+          <Route path={CHATS_CONTACT_ID} element={<Chats />} />
         </Route>
       </Routes>
     </BrowserRouter>

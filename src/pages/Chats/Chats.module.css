@@ -1,0 +1,142 @@
+.container {
+  display: flex;
+  height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarHeader {
+  padding: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contactItem {
+  display: flex;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.contactItem:hover {
+  background-color: var(--bg-elevated);
+}
+
+.avatar {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  background-color: #2c2f36;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.contactName {
+  font-weight: 500;
+}
+
+.lastMessage {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chat */
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Messages */
+.messages {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.message {
+  margin-bottom: 16px;
+  max-width: 60%;
+}
+
+.myMessage {
+  margin-left: auto;
+  text-align: right;
+}
+
+.theirMessage {
+  margin-right: auto;
+}
+
+.messageBubble {
+  background-color: #1e2130;
+  padding: 12px 16px;
+  border-radius: 12px;
+  line-height: 1.4;
+}
+
+.myMessage .messageBubble {
+  background-color: var(--accent);
+}
+
+.messageTime {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Input */
+.inputArea {
+  display: flex;
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.textarea {
+  flex: 1;
+  resize: none;
+  padding: 12px;
+  background-color: var(--bg-elevated);
+  border: none;
+  color: var(--text-primary);
+  border-radius: 8px;
+  outline: none;
+  height: 44px;
+}
+
+.sendButton {
+  margin-left: 12px;
+  padding: 0 20px;
+  background-color: var(--accent);
+  border: none;
+  color: var(--text-primary);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sendButton:hover {
+  opacity: 0.9;
+}

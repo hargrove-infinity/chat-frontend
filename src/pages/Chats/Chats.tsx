@@ -1,54 +1,60 @@
-import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { type FC } from "react";
+import { useChats } from "./Chats.hooks";
+import { contacts } from "./Chats.statics";
+import styles from "./Chats.module.css";
 
-export const Chats = () => {
-  const [messages, setMessages] = useState<string[]>([]);
-
-  useEffect(() => {
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-
-    const chatSocket = io(`${import.meta.env.VITE_BASE_URL}/chat`, {
-      auth: { token },
-    });
-
-    const onConnect = () => {
-      console.log("Connected");
-      chatSocket.emit("chat message", "Hello from the Frontend");
-    };
-
-    const onMessage = (msg: string) => {
-      console.log(`message: ${msg}`);
-      setMessages((prev) => [...prev, msg]);
-    };
-
-    const onDisconnect = (reason: Socket.DisconnectReason): void => {
-      console.log("Reason of disconnect:", reason);
-    };
-
-    const onConnectError = (error: Error) => {
-      console.log("Error:", error);
-    };
-
-    chatSocket.on("connect", onConnect);
-    chatSocket.on("chat message", onMessage);
-    chatSocket.on("connect_error", onConnectError);
-    chatSocket.on("disconnect", onDisconnect);
-
-    return () => {
-      chatSocket.off("connect", onConnect);
-      chatSocket.off("chat message", onMessage);
-      chatSocket.off("connect_error", onConnectError);
-      chatSocket.off("disconnect", onDisconnect);
-      chatSocket.disconnect();
-    };
-  }, []);
+export const Chats: FC = () => {
+  const hook = useChats();
 
   return (
-    <div>
-      <p>Chats</p>
-      {messages.map((msg, idx) => (
-        <div key={`${msg}-${idx}`}>{msg}</div>
-      ))}
+    <div className={styles.container}>
+      {/* Sidebar */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>COLLOSYNC</div>
+
+        <ul className={styles.contactList}>
+          {contacts.map((contact) => (
+            <li
+              key={contact.id}
+              className={styles.contactItem}
+              onClick={() => hook.navigation.onContactClick(contact.id)}
+            >
+              <div className={styles.avatar} />
+              <div className={styles.contactInfo}>
+                <div className={styles.contactName}>{contact.name}</div>
+                <div className={styles.lastMessage}>{contact.lastMessage}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      {/* Chat area */}
+      <main className={styles.chat}>
+        {/* Messages */}
+        <div className={styles.messages}>
+          {hook.messages.messages.map((message) => (
+            <div
+              key={message.id}
+              className={`${styles.message} ${
+                message.isMine ? styles.myMessage : styles.theirMessage
+              }`}
+            >
+              <div className={styles.messageBubble}>{message.content}</div>
+              <div className={styles.messageTime}>{message.time}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className={styles.inputArea}>
+          <textarea
+            className={styles.textarea}
+            placeholder="Type a message..."
+          />
+          <button className={styles.sendButton}>Send</button>
+        </div>
+      </main>
     </div>
   );
 };
