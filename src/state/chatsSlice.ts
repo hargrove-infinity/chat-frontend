@@ -3,6 +3,14 @@ import type { Chat, Message } from "../api/types";
 import { getChatsRequest, getMessagesByChatRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
 
+export const initialChatsState = {
+  errors: null,
+  loadingGetChats: false,
+  loadingGetMessagesByChat: false,
+  chats: null,
+  messages: null,
+};
+
 export interface ChatsSlice {
   errors: null | string[];
   loadingGetChats: boolean;
@@ -14,11 +22,7 @@ export interface ChatsSlice {
 }
 
 export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
-  errors: null,
-  loadingGetChats: false,
-  loadingGetMessagesByChat: false,
-  chats: null,
-  messages: null,
+  ...initialChatsState,
   getChats: async () => {
     try {
       set({ loadingGetChats: true });

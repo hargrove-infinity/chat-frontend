@@ -4,6 +4,13 @@ import { loginRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
 import { getIsAdmin, getToken, setToken } from "../utils/token";
 
+export const initialAuthState = {
+  errors: null,
+  loadingLogin: false,
+  isAuthenticated: !!getToken(),
+  isAdmin: !!getIsAdmin(),
+};
+
 export interface AuthSlice {
   errors: null | string[];
   loadingLogin: boolean;
@@ -13,10 +20,7 @@ export interface AuthSlice {
 }
 
 export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
-  errors: null,
-  loadingLogin: false,
-  isAuthenticated: !!getToken(),
-  isAdmin: !!getIsAdmin(),
+  ...initialAuthState,
   login: async (body: AuthCredentials) => {
     try {
       set({ loadingLogin: true });
