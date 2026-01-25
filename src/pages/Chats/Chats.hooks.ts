@@ -1,32 +1,35 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { io, Socket } from "socket.io-client";
 import { useNavigate, useParams } from "react-router-dom";
+import { io, Socket } from "socket.io-client";
 import { CHATS } from "../../constants/routes";
-import type { Message } from "./Chats.types";
-import { messagesMap } from "./Chats.statics";
+import { useStore } from "../../state/store";
 
 export const useChatsMessages = () => {
   const { contactId } = useParams();
-  const [serverMessages, setServerMessages] = useState<string[]>([]);
-  const [localMessages, setLocalMessages] = useState<{
-    [key: string]: Message[];
-  }>({ ...messagesMap });
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const { chats, messages, getChats, getMessagesByChat, logout } = useStore();
 
   useEffect(() => {
+    // TODO: Maybe remove it later
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
 
     const chatSocket = io(`${import.meta.env.VITE_BASE_URL}/chat`, {
       auth: { token },
     });
 
+    setSocket(chatSocket);
+
     const onConnect = () => {
       console.log("Connected");
-      chatSocket.emit("chat message", "Hello from the Frontend");
+      chatSocket.emit(
+        "chat message",
+        `Socket ${chatSocket.id} has connected from the Frontend`,
+      );
     };
 
     const onMessage = (msg: string) => {
+      // TODO: Here message is being received from the backend and stored in zustand
       console.log(`message: ${msg}`);
-      setServerMessages((prev) => [...prev, msg]);
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
@@ -52,42 +55,30 @@ export const useChatsMessages = () => {
   }, []);
 
   useEffect(() => {
+    getChats();
+  }, []);
+
+  useEffect(() => {
     if (contactId) {
-      setLocalMessages((prev) => ({
-        ...prev,
-        [contactId]: messagesMap[contactId] || [],
-      }));
+      getMessagesByChat(contactId);
     }
   }, [contactId]);
 
   const sendMessage = (content: string) => {
     if (!contactId || !content.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      author: "You",
-      content: content.trim(),
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
-      isMine: true,
-    };
-
-    setLocalMessages((prev) => ({
-      ...prev,
-      [contactId]: [...(prev[contactId] || []), newMessage],
-    }));
+    if (socket) {
+      // TODO: Here message is being sent to the backend
+      socket.emit("chat message", content);
+    }
   };
 
   return {
     contactId,
-    serverMessages,
-    messages:
-      contactId && Object.keys(localMessages).length
-        ? localMessages[contactId]
-        : [],
+    chats: chats || [],
+    messages: messages || [],
     sendMessage,
+    logout,
   };
 };
 

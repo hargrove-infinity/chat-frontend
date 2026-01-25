@@ -151,3 +151,25 @@
 .sendButton:hover {
   opacity: 0.9;
 }
+
+/* Logout */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #1f2026;
+}
+
+.logoutButton {
+  width: 100%;
+  padding: 10px 0;
+  background-color: transparent;
+  color: #9a9ca5;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.logoutButton:hover {
+  background-color: #15161c;
+  color: #ffffff;
+}

@@ -20,3 +20,24 @@ export interface AuthCredentials {
   email: string;
   password: string;
 }
+
+// Chats
+export type Chat = {
+  id: string;
+  type: "direct" | "group";
+  name: string;
+  participants: string[];
+  lastMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Message = {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: string;
+  isMine: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
