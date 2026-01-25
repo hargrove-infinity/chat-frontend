@@ -69,7 +69,7 @@ export const useChatsMessages = () => {
 
     if (socket) {
       // TODO: Here message is being sent to the backend
-      socket.emit("chat message", content);
+      socket.emit("chat message", { content, chatId: contactId });
     }
   };
 
