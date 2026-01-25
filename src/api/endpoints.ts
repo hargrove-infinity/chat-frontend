@@ -1,3 +1,6 @@
-export const AUTH_ENDPOINTS = {
-  LOGIN: "/login",
-};
+// Auth
+export const LOGIN = "/login";
+
+// Chats
+export const CHATS = "/chats";
+export const MESSAGES = "/messages";

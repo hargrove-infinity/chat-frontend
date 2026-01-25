@@ -5,6 +5,7 @@ export const Metrics = () => {
   const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
+    // TODO: Maybe remove it later
     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpGTeA3...";
 
     const adminSocket = io(`${import.meta.env.VITE_BASE_URL}/admin`, {
