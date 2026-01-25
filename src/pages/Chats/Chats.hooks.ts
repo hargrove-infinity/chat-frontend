@@ -7,7 +7,12 @@ import { useStore } from "../../state/store";
 export const useChatsMessages = () => {
   const { contactId } = useParams();
   const [socket, setSocket] = useState<Socket | null>(null);
-  const { chats, messages, getChats, getMessagesByChat, logout } = useStore();
+
+  const chats = useStore((state) => state.chats);
+  const messages = useStore((state) => state.messages);
+  const getChats = useStore((state) => state.getChats);
+  const getMessagesByChat = useStore((state) => state.getMessagesByChat);
+  const logout = useStore((state) => state.logout);
 
   useEffect(() => {
     // TODO: Maybe remove it later

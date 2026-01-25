@@ -2,7 +2,7 @@ import type { StateCreator } from "zustand";
 import type { AuthCredentials } from "../api/types";
 import { loginRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
-import { deleteToken, getIsAdmin, getToken, setToken } from "../utils/token";
+import { getIsAdmin, getToken, setToken } from "../utils/token";
 
 export interface AuthSlice {
   errors: null | string[];
@@ -10,7 +10,6 @@ export interface AuthSlice {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (args: AuthCredentials) => Promise<void>;
-  logout: () => void;
 }
 
 export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
@@ -44,10 +43,5 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
 
       set({ errors: ["Unknown error"] });
     }
-  },
-  logout: () => {
-    // TODO reset Multiple Stores at Once
-    set({ isAuthenticated: false, isAdmin: false });
-    deleteToken();
   },
 });
