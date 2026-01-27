@@ -2,7 +2,8 @@ import type { StateCreator } from "zustand";
 import type { AuthCredentials } from "../api/types";
 import { loginRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
-import { getIsAdmin, getToken, setToken } from "../utils/token";
+import { getToken, setToken } from "../utils/token";
+import { getIsAdmin } from "../utils/getIsAdmin";
 
 export const initialAuthState = {
   errors: null,

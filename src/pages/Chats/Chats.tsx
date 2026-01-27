@@ -15,13 +15,11 @@ export const Chats: FC = () => {
 
         {/* Chats */}
         <ul className={styles.contactList}>
-          {hook.messages.chats.map((chat) => (
+          {hook.chat.chats.map((chat) => (
             <li
               key={chat.id}
               className={`${styles.contactItem} ${
-                hook.messages.contactId === chat.id
-                  ? styles.contactItemActive
-                  : ""
+                hook.chat.contactId === chat.id ? styles.contactItemActive : ""
               }`}
               onClick={() => hook.navigation.onContactClick(chat.id)}
             >
@@ -36,14 +34,28 @@ export const Chats: FC = () => {
           ))}
         </ul>
 
-        {/* Logout */}
+        {/* User Info & Logout */}
         <div className={styles.sidebarFooter}>
-          <button
-            className={styles.logoutButton}
-            onClick={hook.messages.logout}
-          >
-            Logout
-          </button>
+          {hook.profile.user && (
+            <div className={styles.userInfo}>
+              <div className={styles.userAvatar}>
+                {hook.profile.userInitials}
+              </div>
+              <div className={styles.userDetails}>
+                <div className={styles.userName}>
+                  {hook.profile.user.firstName} {hook.profile.user.lastName}
+                </div>
+                <div className={styles.userEmail}>
+                  {hook.profile.user.email}
+                </div>
+              </div>
+            </div>
+          )}
+          <div className={styles.logoutWrapper}>
+            <button className={styles.logoutButton} onClick={hook.auth.logout}>
+              Logout
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -51,7 +63,7 @@ export const Chats: FC = () => {
       <main className={styles.chat}>
         {/* Messages */}
         <div className={styles.messages}>
-          {hook.messages.messages.map((message) => (
+          {hook.chat.messages.map((message) => (
             <div
               key={message.id}
               className={`${styles.message} ${

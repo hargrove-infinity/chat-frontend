@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import {
+  ADMIN_EVENTS,
+  ADMIN_NAMESPACE,
+  CONNECTION_EVENTS,
+  WELCOME_EVENTS,
+} from "../../constants/socket";
+import { getToken } from "../../utils/token";
 
 export const Metrics = () => {
   const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
-    // TODO: Maybe remove it later
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpGTeA3...";
-
-    const adminSocket = io(`${import.meta.env.VITE_BASE_URL}/admin`, {
-      auth: { token, isAdmin: true },
-    });
+    const adminSocket = io(
+      `${import.meta.env.VITE_BASE_URL}${ADMIN_NAMESPACE}`,
+      { auth: { token: getToken(), isAdmin: true } },
+    );
 
     const onConnect = () => {
       console.log("Connected");
-      adminSocket.emit("chat message", "Hello from the Frontend");
+      adminSocket.emit(
+        CONNECTION_EVENTS.ADMIN,
+        `Socket ${adminSocket.id} has connected from the Frontend (admin part)`,
+      );
     };
 
-    const onMessage = (msg: string) => {
+    const onWelcomeMessage = (msg: string) => {
       console.log(`message: ${msg}`);
       setMessages((prev) => [...prev, msg]);
     };
@@ -35,15 +43,15 @@ export const Metrics = () => {
     };
 
     adminSocket.on("connect", onConnect);
-    adminSocket.on("chat message", onMessage);
-    adminSocket.on("metrics", onMetricsMessage);
+    adminSocket.on(WELCOME_EVENTS.ADMIN, onWelcomeMessage);
+    adminSocket.on(ADMIN_EVENTS.METRICS, onMetricsMessage);
     adminSocket.on("connect_error", onConnectError);
     adminSocket.on("disconnect", onDisconnect);
 
     return () => {
       adminSocket.off("connect", onConnect);
-      adminSocket.off("chat message", onMessage);
-      adminSocket.off("metrics", onMetricsMessage);
+      adminSocket.off(WELCOME_EVENTS.ADMIN, onWelcomeMessage);
+      adminSocket.off(ADMIN_EVENTS.METRICS, onMetricsMessage);
       adminSocket.off("connect_error", onConnectError);
       adminSocket.off("disconnect", onDisconnect);
       adminSocket.disconnect();

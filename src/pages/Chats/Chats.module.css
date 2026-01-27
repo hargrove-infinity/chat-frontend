@@ -122,6 +122,7 @@
 /* Input */
 .inputArea {
   display: flex;
+  height: 78px;
   padding: 16px;
   border-top: 1px solid var(--border-color);
 }
@@ -155,6 +156,11 @@
 /* Logout */
 .sidebarFooter {
   margin-top: auto;
+  border-top: 1px solid #1f2026;
+}
+
+.logoutWrapper {
+  height: 78px;
   padding: 16px;
   border-top: 1px solid #1f2026;
 }
@@ -172,4 +178,47 @@
 .logoutButton:hover {
   background-color: #15161c;
   color: #ffffff;
+}
+
+/* User Info */
+.userInfo {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+
+.userAvatar {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  background-color: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.userName {
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
