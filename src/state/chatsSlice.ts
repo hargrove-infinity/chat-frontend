@@ -1,7 +1,8 @@
 import type { StateCreator } from "zustand";
-import type { Chat, Message } from "../api/types";
+import type { Chat, MessageLocal } from "../api/types";
 import { getChatsRequest, getMessagesByChatRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
+import { getUser } from "../utils/getUser";
 
 export const initialChatsState = {
   errors: null,
@@ -16,7 +17,7 @@ export interface ChatsSlice {
   loadingGetChats: boolean;
   loadingGetMessagesByChat: boolean;
   chats: null | Chat[];
-  messages: null | Message[];
+  messages: null | MessageLocal[];
   getChats: () => Promise<void>;
   getMessagesByChat: (chatId: string) => Promise<void>;
 }
@@ -49,7 +50,13 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
       set({ loadingGetMessagesByChat: true });
       const res = await getMessagesByChatRequest(chatId);
       const { payload } = res.data;
-      set({ loadingGetMessagesByChat: false, messages: payload });
+
+      const messagesWithOwners = payload.map((msg) => ({
+        ...msg,
+        isMine: getUser()?.id === msg.senderId,
+      }));
+
+      set({ loadingGetMessagesByChat: false, messages: messagesWithOwners });
     } catch (error) {
       set({ loadingGetMessagesByChat: false });
 

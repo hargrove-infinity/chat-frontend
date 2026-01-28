@@ -32,7 +32,7 @@ export type Chat = {
   updatedAt: string;
 };
 
-export type Message = {
+export type MessageLocal = {
   id: string;
   chatId: string;
   senderId: string;
@@ -41,3 +41,5 @@ export type Message = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type MessageServer = Omit<MessageLocal, "isMine">;

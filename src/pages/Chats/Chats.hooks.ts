@@ -9,7 +9,7 @@ import {
   WELCOME_EVENTS,
 } from "../../constants/socket";
 import { useStore } from "../../state/store";
-import type { Message } from "../../api/types";
+import type { MessageServer } from "../../api/types";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
@@ -47,10 +47,13 @@ const useChatsMessages = () => {
       console.log(`Welcome message: ${msg}`);
     };
 
-    const onMessage = (msg: Message) => {
+    const onMessage = (msg: MessageServer) => {
       console.log("onMessage:", msg);
       useStore.setState((state) => ({
-        messages: [...(state.messages || []), msg],
+        messages: [
+          ...(state.messages || []),
+          { ...msg, isMine: getUser()?.id === msg.senderId },
+        ],
       }));
     };
 

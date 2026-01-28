@@ -1,6 +1,6 @@
 import { api } from "./api";
 import { LOGIN, CHATS, MESSAGES } from "./endpoints";
-import type { ApiPromise, AuthCredentials, Chat, Message } from "./types";
+import type { ApiPromise, AuthCredentials, Chat, MessageServer } from "./types";
 
 // Auth
 export const loginRequest = (args: AuthCredentials): ApiPromise<string> => {
@@ -14,6 +14,6 @@ export const getChatsRequest = (): ApiPromise<Chat[]> => {
 
 export const getMessagesByChatRequest = (
   chatId: string,
-): ApiPromise<Message[]> => {
+): ApiPromise<MessageServer[]> => {
   return api.get(`${CHATS}/${chatId}${MESSAGES}`);
 };
