@@ -57,6 +57,10 @@ const useChatsMessages = () => {
       }));
     };
 
+    const onJoinRoomMessage = (msg: string) => {
+      console.log("onJoinRoomMessage:", msg);
+    };
+
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
       console.log("Reason of disconnect:", reason);
     };
@@ -68,6 +72,7 @@ const useChatsMessages = () => {
     chatSocket.on("connect", onConnect);
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
     chatSocket.on(CHAT_EVENTS.MESSAGE, onMessage);
+    chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
@@ -75,6 +80,7 @@ const useChatsMessages = () => {
       chatSocket.off("connect", onConnect);
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
       chatSocket.off(CHAT_EVENTS.MESSAGE, onMessage);
+      chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
@@ -100,6 +106,7 @@ const useChatsMessages = () => {
   };
 
   return {
+    socket,
     contactId,
     chats: chats || [],
     messages: messages || [],
@@ -127,7 +134,7 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
   return { inputValue, setInputValue, handleKeyDown, handleSend };
 };
 
-const useChatsNavigation = () => {
+const useChatsNavigation = (socket: Socket | null) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { contactId } = useParams();
@@ -141,28 +148,28 @@ const useChatsNavigation = () => {
   };
 
   useEffect(() => {
-    if (contactId && chats?.length) {
+    if (socket && contactId && chats?.length) {
       const foundGroupChat = chats.find(
         (chat) => chat.id === contactId && chat.type === "group",
       );
 
       if (foundGroupChat) {
-        console.log("Here I'm joining the room:", contactId);
+        socket.emit(CHAT_EVENTS.JOIN_ROOM, contactId);
       }
     }
-  }, [contactId, chats]);
+  }, [socket, contactId, chats]);
 
   useEffect(() => {
-    if (prevContactId && chats?.length) {
+    if (socket && prevContactId && chats?.length) {
       const foundGroupChat = chats.find(
         (chat) => chat.id === prevContactId && chat.type === "group",
       );
 
       if (foundGroupChat) {
-        console.log("Here I'm leaving the room:", prevContactId);
+        socket.emit(CHAT_EVENTS.LEAVE_ROOM, prevContactId);
       }
     }
-  }, [prevContactId, chats]);
+  }, [socket, prevContactId, chats]);
 
   return { onContactClick };
 };
@@ -188,7 +195,7 @@ const useChatLogout = () => {
 
 export const useChats = () => {
   const chat = useChatsMessages();
-  const navigation = useChatsNavigation();
+  const navigation = useChatsNavigation(chat.socket);
   const sendMessage = useChatSendMessage(chat.sendMessage);
   const profile = useChatUser();
   const auth = useChatLogout();
