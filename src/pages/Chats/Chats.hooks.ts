@@ -61,6 +61,17 @@ const useChatsMessages = () => {
       console.log("onJoinRoomMessage:", msg);
     };
 
+    const onGroupMessage = (msg: MessageServer) => {
+      console.log("onGroupMessage:", msg);
+
+      useStore.setState((state) => ({
+        messages: [
+          ...(state.messages || []),
+          { ...msg, isMine: getUser()?.id === msg.senderId },
+        ],
+      }));
+    };
+
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
       console.log("Reason of disconnect:", reason);
     };
@@ -73,6 +84,7 @@ const useChatsMessages = () => {
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
     chatSocket.on(CHAT_EVENTS.MESSAGE, onMessage);
     chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
+    chatSocket.on(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
@@ -80,7 +92,8 @@ const useChatsMessages = () => {
       chatSocket.off("connect", onConnect);
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
       chatSocket.off(CHAT_EVENTS.MESSAGE, onMessage);
-      chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
+      chatSocket.off(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
+      chatSocket.off(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
@@ -98,10 +111,16 @@ const useChatsMessages = () => {
   }, [contactId]);
 
   const sendMessage = (content: string) => {
-    if (!contactId || !content.trim()) return;
+    if (!socket || !chats?.length || !contactId || !content.trim()) return;
 
-    if (socket) {
+    const currentChat = chats.find((chat) => chat.id === contactId);
+
+    if (!currentChat) return;
+
+    if (currentChat.type === "direct") {
       socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId: contactId });
+    } else {
+      socket.emit(CHAT_EVENTS.MESSAGE_GROUP, { content, chatId: contactId });
     }
   };
 
