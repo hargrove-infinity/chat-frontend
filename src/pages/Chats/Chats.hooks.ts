@@ -13,14 +13,8 @@ import type { MessageServer } from "../../api/types";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
-const useChatsMessages = () => {
-  const { contactId } = useParams();
+const useChatSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
-
-  const chats = useStore((state) => state.chats);
-  const messages = useStore((state) => state.messages);
-  const getChats = useStore((state) => state.getChats);
-  const getMessagesByChat = useStore((state) => state.getMessagesByChat);
 
   useEffect(() => {
     const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
@@ -100,6 +94,17 @@ const useChatsMessages = () => {
     };
   }, []);
 
+  return { socket };
+};
+
+const useChatsMessages = (socket: Socket | null) => {
+  const { contactId } = useParams();
+
+  const chats = useStore((state) => state.chats);
+  const messages = useStore((state) => state.messages);
+  const getChats = useStore((state) => state.getChats);
+  const getMessagesByChat = useStore((state) => state.getMessagesByChat);
+
   useEffect(() => {
     getChats();
   }, []);
@@ -125,7 +130,6 @@ const useChatsMessages = () => {
   };
 
   return {
-    socket,
     contactId,
     chats: chats || [],
     messages: messages || [],
@@ -213,8 +217,9 @@ const useChatLogout = () => {
 };
 
 export const useChats = () => {
-  const chat = useChatsMessages();
-  const navigation = useChatsNavigation(chat.socket);
+  const { socket } = useChatSocket();
+  const chat = useChatsMessages(socket);
+  const navigation = useChatsNavigation(socket);
   const sendMessage = useChatSendMessage(chat.sendMessage);
   const profile = useChatUser();
   const auth = useChatLogout();
