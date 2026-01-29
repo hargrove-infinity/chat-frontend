@@ -2,9 +2,18 @@ import { useEffect, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { CHATS } from "../../constants/routes";
+import {
+  CHAT_EVENTS,
+  CHAT_NAMESPACE,
+  CONNECTION_EVENTS,
+  WELCOME_EVENTS,
+} from "../../constants/socket";
 import { useStore } from "../../state/store";
+import type { MessageServer } from "../../api/types";
+import { getToken } from "../../utils/token";
+import { getUser } from "../../utils/getUser";
 
-export const useChatsMessages = () => {
+const useChatsMessages = () => {
   const { contactId } = useParams();
   const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -12,29 +21,40 @@ export const useChatsMessages = () => {
   const messages = useStore((state) => state.messages);
   const getChats = useStore((state) => state.getChats);
   const getMessagesByChat = useStore((state) => state.getMessagesByChat);
-  const logout = useStore((state) => state.logout);
 
   useEffect(() => {
-    // TODO: Maybe remove it later
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-
-    const chatSocket = io(`${import.meta.env.VITE_BASE_URL}/chat`, {
-      auth: { token },
+    const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
+      auth: { token: getToken() },
     });
 
     setSocket(chatSocket);
 
+    // TODO: Find place where I can apply this
+    // chatSocket.onAny((eventName, ...data) => {
+    //   console.log("eventName", eventName);
+    //   console.log("data", data);
+    // });
+
     const onConnect = () => {
       console.log("Connected");
       chatSocket.emit(
-        "chat message",
-        `Socket ${chatSocket.id} has connected from the Frontend`,
+        CONNECTION_EVENTS.CHAT,
+        `Socket ${chatSocket.id} has connected from the Frontend (chats part)`,
       );
     };
 
-    const onMessage = (msg: string) => {
-      // TODO: Here message is being received from the backend and stored in zustand
-      console.log(`message: ${msg}`);
+    const onWelcomeMessage = (msg: string) => {
+      console.log(`Welcome message: ${msg}`);
+    };
+
+    const onMessage = (msg: MessageServer) => {
+      console.log("onMessage:", msg);
+      useStore.setState((state) => ({
+        messages: [
+          ...(state.messages || []),
+          { ...msg, isMine: getUser()?.id === msg.senderId },
+        ],
+      }));
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
@@ -46,13 +66,15 @@ export const useChatsMessages = () => {
     };
 
     chatSocket.on("connect", onConnect);
-    chatSocket.on("chat message", onMessage);
+    chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
+    chatSocket.on(CHAT_EVENTS.MESSAGE, onMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
     return () => {
       chatSocket.off("connect", onConnect);
-      chatSocket.off("chat message", onMessage);
+      chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
+      chatSocket.off(CHAT_EVENTS.MESSAGE, onMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
@@ -73,8 +95,7 @@ export const useChatsMessages = () => {
     if (!contactId || !content.trim()) return;
 
     if (socket) {
-      // TODO: Here message is being sent to the backend
-      socket.emit("chat message", { content, chatId: contactId });
+      socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId: contactId });
     }
   };
 
@@ -83,11 +104,10 @@ export const useChatsMessages = () => {
     chats: chats || [],
     messages: messages || [],
     sendMessage,
-    logout,
   };
 };
 
-export const useChatSendMessage = (sendMessage: (content: string) => void) => {
+const useChatSendMessage = (sendMessage: (content: string) => void) => {
   const [inputValue, setInputValue] = useState("");
 
   const handleSend = () => {
@@ -107,7 +127,7 @@ export const useChatSendMessage = (sendMessage: (content: string) => void) => {
   return { inputValue, setInputValue, handleKeyDown, handleSend };
 };
 
-export const useChatsNavigation = () => {
+const useChatsNavigation = () => {
   const navigate = useNavigate();
 
   const onContactClick = (id: string): void => {
@@ -117,10 +137,37 @@ export const useChatsNavigation = () => {
   return { onContactClick };
 };
 
-export const useChats = () => {
-  const messages = useChatsMessages();
-  const navigation = useChatsNavigation();
-  const sendMessage = useChatSendMessage(messages.sendMessage);
+const useChatUser = () => {
+  const user = getUser();
 
-  return { messages, navigation, sendMessage };
+  const getUserInitials = () => {
+    if (!user) return "?";
+    const first = user.firstName.charAt(0).toUpperCase();
+    const last = user.lastName.charAt(0).toUpperCase();
+    return `${first}${last}`;
+  };
+
+  return { user, userInitials: getUserInitials() };
+};
+
+const useChatLogout = () => {
+  const logout = useStore((state) => state.logout);
+
+  return { logout };
+};
+
+export const useChats = () => {
+  const chat = useChatsMessages();
+  const navigation = useChatsNavigation();
+  const sendMessage = useChatSendMessage(chat.sendMessage);
+  const profile = useChatUser();
+  const auth = useChatLogout();
+
+  return {
+    auth,
+    chat,
+    profile,
+    navigation,
+    sendMessage,
+  };
 };
