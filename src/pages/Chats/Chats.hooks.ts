@@ -167,7 +167,7 @@ const useChatsNavigation = (socket: Socket | null) => {
   };
 
   useEffect(() => {
-    if (socket && contactId && chats?.length) {
+    if (socket?.connected && contactId && chats?.length) {
       const foundGroupChat = chats.find(
         (chat) => chat.id === contactId && chat.type === "group",
       );
@@ -176,10 +176,10 @@ const useChatsNavigation = (socket: Socket | null) => {
         socket.emit(CHAT_EVENTS.JOIN_ROOM, contactId);
       }
     }
-  }, [socket, contactId, chats]);
+  }, [socket?.connected, contactId, chats]);
 
   useEffect(() => {
-    if (socket && prevContactId && chats?.length) {
+    if (socket?.connected && prevContactId && chats?.length) {
       const foundGroupChat = chats.find(
         (chat) => chat.id === prevContactId && chat.type === "group",
       );
@@ -188,7 +188,7 @@ const useChatsNavigation = (socket: Socket | null) => {
         socket.emit(CHAT_EVENTS.LEAVE_ROOM, prevContactId);
       }
     }
-  }, [socket, prevContactId, chats]);
+  }, [socket?.connected, prevContactId, chats]);
 
   return { onContactClick };
 };
