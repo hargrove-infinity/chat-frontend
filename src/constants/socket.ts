@@ -12,7 +12,6 @@ export const CONNECTION_EVENTS = {
 } as const;
 
 export const ADMIN_EVENTS = {
-  MESSAGE: "admin:message",
   METRICS: "admin:metrics",
 } as const;
 
