@@ -1,5 +1,5 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { CHATS } from "../../constants/routes";
 import {
@@ -129,10 +129,40 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
 
 const useChatsNavigation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { contactId } = useParams();
+
+  const prevContactId = location.state?.prevContactId;
+
+  const chats = useStore((state) => state.chats);
 
   const onContactClick = (id: string): void => {
-    navigate(`${CHATS}/${id}`, { replace: false });
+    navigate(`${CHATS}/${id}`, { state: { prevContactId: contactId } });
   };
+
+  useEffect(() => {
+    if (contactId && chats?.length) {
+      const foundGroupChat = chats.find(
+        (chat) => chat.id === contactId && chat.type === "group",
+      );
+
+      if (foundGroupChat) {
+        console.log("Here I'm joining the room:", contactId);
+      }
+    }
+  }, [contactId, chats]);
+
+  useEffect(() => {
+    if (prevContactId && chats?.length) {
+      const foundGroupChat = chats.find(
+        (chat) => chat.id === prevContactId && chat.type === "group",
+      );
+
+      if (foundGroupChat) {
+        console.log("Here I'm leaving the room:", prevContactId);
+      }
+    }
+  }, [prevContactId, chats]);
 
   return { onContactClick };
 };
