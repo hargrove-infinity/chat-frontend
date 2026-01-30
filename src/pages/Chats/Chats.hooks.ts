@@ -41,7 +41,7 @@ const useChatSocket = () => {
       console.log(`Welcome message: ${msg}`);
     };
 
-    const onMessage = (msg: MessageServer) => {
+    const onDirectMessage = (msg: MessageServer) => {
       console.log("onMessage:", msg);
       useStore.setState((state) => ({
         messages: [
@@ -76,7 +76,7 @@ const useChatSocket = () => {
 
     chatSocket.on("connect", onConnect);
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
-    chatSocket.on(CHAT_EVENTS.MESSAGE, onMessage);
+    chatSocket.on(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
     chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
     chatSocket.on(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
     chatSocket.on("connect_error", onConnectError);
@@ -85,7 +85,7 @@ const useChatSocket = () => {
     return () => {
       chatSocket.off("connect", onConnect);
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
-      chatSocket.off(CHAT_EVENTS.MESSAGE, onMessage);
+      chatSocket.off(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
       chatSocket.off(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
       chatSocket.off(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
       chatSocket.off("connect_error", onConnectError);
@@ -123,7 +123,7 @@ const useChatsMessages = (socket: Socket | null) => {
     if (!currentChat) return;
 
     if (currentChat.type === "direct") {
-      socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId: contactId });
+      socket.emit(CHAT_EVENTS.MESSAGE_DIRECT, { content, chatId: contactId });
     } else {
       socket.emit(CHAT_EVENTS.MESSAGE_GROUP, { content, chatId: contactId });
     }
