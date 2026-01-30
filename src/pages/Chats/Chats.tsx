@@ -19,7 +19,7 @@ export const Chats: FC = () => {
             <li
               key={chat.id}
               className={`${styles.contactItem} ${
-                hook.chat.contactId === chat.id ? styles.contactItemActive : ""
+                hook.chat.chatId === chat.id ? styles.contactItemActive : ""
               }`}
               onClick={() => hook.navigation.onContactClick(chat.id)}
             >

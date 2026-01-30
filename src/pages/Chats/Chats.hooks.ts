@@ -98,7 +98,7 @@ const useChatSocket = () => {
 };
 
 const useChatsMessages = (socket: Socket | null) => {
-  const { contactId } = useParams();
+  const { chatId } = useParams();
 
   const chats = useStore((state) => state.chats);
   const messages = useStore((state) => state.messages);
@@ -110,27 +110,27 @@ const useChatsMessages = (socket: Socket | null) => {
   }, []);
 
   useEffect(() => {
-    if (contactId) {
-      getMessagesByChat(contactId);
+    if (chatId) {
+      getMessagesByChat(chatId);
     }
-  }, [contactId]);
+  }, [chatId]);
 
   const sendMessage = (content: string) => {
-    if (!socket || !chats?.length || !contactId || !content.trim()) return;
+    if (!socket || !chats?.length || !chatId || !content.trim()) return;
 
-    const currentChat = chats.find((chat) => chat.id === contactId);
+    const currentChat = chats.find((chat) => chat.id === chatId);
 
     if (!currentChat) return;
 
     if (currentChat.type === "direct") {
-      socket.emit(CHAT_EVENTS.MESSAGE_DIRECT, { content, chatId: contactId });
+      socket.emit(CHAT_EVENTS.MESSAGE_DIRECT, { content, chatId });
     } else {
-      socket.emit(CHAT_EVENTS.MESSAGE_GROUP, { content, chatId: contactId });
+      socket.emit(CHAT_EVENTS.MESSAGE_GROUP, { content, chatId });
     }
   };
 
   return {
-    contactId,
+    chatId,
     chats: chats || [],
     messages: messages || [],
     sendMessage,
@@ -160,39 +160,39 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
 const useChatsNavigation = (socket: Socket | null) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { contactId } = useParams();
+  const { chatId } = useParams();
 
-  const prevContactId = location.state?.prevContactId;
+  const prevChatId = location.state?.prevChatId;
 
   const chats = useStore((state) => state.chats);
 
   const onContactClick = (id: string): void => {
-    navigate(`${CHATS}/${id}`, { state: { prevContactId: contactId } });
+    navigate(`${CHATS}/${id}`, { state: { prevChatId: chatId } });
   };
 
   useEffect(() => {
-    if (socket?.connected && contactId && chats?.length) {
+    if (socket?.connected && chatId && chats?.length) {
       const foundGroupChat = chats.find(
-        (chat) => chat.id === contactId && chat.type === "group",
+        (chat) => chat.id === chatId && chat.type === "group",
       );
 
       if (foundGroupChat) {
-        socket.emit(CHAT_EVENTS.JOIN_ROOM, contactId);
+        socket.emit(CHAT_EVENTS.JOIN_ROOM, chatId);
       }
     }
-  }, [socket?.connected, contactId, chats]);
+  }, [socket?.connected, chatId, chats]);
 
   useEffect(() => {
-    if (socket?.connected && prevContactId && chats?.length) {
+    if (socket?.connected && prevChatId && chats?.length) {
       const foundGroupChat = chats.find(
-        (chat) => chat.id === prevContactId && chat.type === "group",
+        (chat) => chat.id === prevChatId && chat.type === "group",
       );
 
       if (foundGroupChat) {
-        socket.emit(CHAT_EVENTS.LEAVE_ROOM, prevContactId);
+        socket.emit(CHAT_EVENTS.LEAVE_ROOM, prevChatId);
       }
     }
-  }, [socket?.connected, prevContactId, chats]);
+  }, [socket?.connected, prevChatId, chats]);
 
   return { onContactClick };
 };
