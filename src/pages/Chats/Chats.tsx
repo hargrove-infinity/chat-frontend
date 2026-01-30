@@ -70,7 +70,13 @@ export const Chats: FC = () => {
                 message.isMine ? styles.myMessage : styles.theirMessage
               }`}
             >
+              {/* Sender name (optional) */}
+              {!message.isMine && message.senderName && (
+                <div className={styles.senderName}>{message.senderName}</div>
+              )}
+              {/* Message content */}
               <div className={styles.messageBubble}>{message.content}</div>
+              {/* Message datetime */}
               <div className={styles.messageTime}>
                 {formatDateTime(message.createdAt)}
               </div>

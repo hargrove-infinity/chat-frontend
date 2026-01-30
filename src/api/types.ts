@@ -36,6 +36,7 @@ export type MessageLocal = {
   id: string;
   chatId: string;
   senderId: string;
+  senderName: string | null;
   content: string;
   isMine: boolean;
   createdAt: string;
