@@ -43,12 +43,24 @@ const useChatSocket = () => {
 
     const onDirectMessage = (msg: MessageServer) => {
       console.log("onMessage:", msg);
-      useStore.setState((state) => ({
-        messages: [
-          ...(state.messages || []),
-          { ...msg, isMine: getUser()?.id === msg.senderId },
-        ],
-      }));
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (chat.id === msg.chatId) {
+            return { ...chat, lastMessage: msg.content };
+          }
+
+          return chat;
+        });
+
+        return {
+          chats: updatedChats,
+          messages: [
+            ...(state.messages || []),
+            { ...msg, isMine: getUser()?.id === msg.senderId },
+          ],
+        };
+      });
     };
 
     const onJoinRoomMessage = (msg: string) => {
@@ -58,12 +70,23 @@ const useChatSocket = () => {
     const onGroupMessage = (msg: MessageServer) => {
       console.log("onGroupMessage:", msg);
 
-      useStore.setState((state) => ({
-        messages: [
-          ...(state.messages || []),
-          { ...msg, isMine: getUser()?.id === msg.senderId },
-        ],
-      }));
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (chat.id === msg.chatId) {
+            return { ...chat, lastMessage: msg.content };
+          }
+
+          return chat;
+        });
+
+        return {
+          chats: updatedChats,
+          messages: [
+            ...(state.messages || []),
+            { ...msg, isMine: getUser()?.id === msg.senderId },
+          ],
+        };
+      });
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
