@@ -15,14 +15,15 @@ import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
 const useChatSocket = () => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socket = useStore((state) => state.chatSocket);
+  const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
     const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
       auth: { token: getToken() },
     });
 
-    setSocket(chatSocket);
+    setChatSocket(chatSocket);
 
     // TODO: Find place where I can apply this
     // chatSocket.onAny((eventName, ...data) => {
