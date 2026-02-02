@@ -1,6 +1,7 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
+import { useShallow } from "zustand/shallow";
 import { CHATS } from "../../constants/routes";
 import {
   CHAT_EVENTS,
@@ -8,8 +9,8 @@ import {
   CONNECTION_EVENTS,
   WELCOME_EVENTS,
 } from "../../constants/socket";
-import { useStore } from "../../state/store";
 import type { MessageServer } from "../../api/types";
+import { useStore } from "../../state/store";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
@@ -79,34 +80,8 @@ const useChatSocket = () => {
       console.log(`Welcome message: ${msg}`);
     };
 
-    const onDirectMessage = (msg: MessageServer) => {
+    const onChatMessage = (msg: MessageServer) => {
       console.log("onMessage:", msg);
-
-      useStore.setState((state) => {
-        const updatedChats = state.chats?.map((chat) => {
-          if (chat.id === msg.chatId) {
-            return { ...chat, lastMessage: msg.content };
-          }
-
-          return chat;
-        });
-
-        return {
-          chats: updatedChats,
-          messages: [
-            ...(state.messages || []),
-            { ...msg, isMine: getUser()?.id === msg.senderId },
-          ],
-        };
-      });
-    };
-
-    const onJoinRoomMessage = (msg: string) => {
-      console.log("onJoinRoomMessage:", msg);
-    };
-
-    const onGroupMessage = (msg: MessageServer) => {
-      console.log("onGroupMessage:", msg);
 
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
@@ -139,9 +114,7 @@ const useChatSocket = () => {
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
-    chatSocket.on(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
-    chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
-    chatSocket.on(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
+    chatSocket.on(CHAT_EVENTS.MESSAGE, onChatMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
@@ -150,9 +123,7 @@ const useChatSocket = () => {
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
-      chatSocket.off(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
-      chatSocket.off(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
-      chatSocket.off(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
+      chatSocket.off(CHAT_EVENTS.MESSAGE, onChatMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
@@ -187,11 +158,7 @@ const useChatsMessages = (socket: Socket | null) => {
 
     if (!currentChat) return;
 
-    if (currentChat.type === "direct") {
-      socket.emit(CHAT_EVENTS.MESSAGE_DIRECT, { content, chatId });
-    } else {
-      socket.emit(CHAT_EVENTS.MESSAGE_GROUP, { content, chatId });
-    }
+    socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId });
   };
 
   return {
@@ -222,42 +189,12 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
   return { inputValue, setInputValue, handleKeyDown, handleSend };
 };
 
-const useChatsNavigation = (socket: Socket | null) => {
+const useChatsNavigation = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { chatId } = useParams();
-
-  const prevChatId = location.state?.prevChatId;
-
-  const chats = useStore((state) => state.chats);
 
   const onContactClick = (id: string): void => {
-    navigate(`${CHATS}/${id}`, { state: { prevChatId: chatId } });
+    navigate(`${CHATS}/${id}`);
   };
-
-  useEffect(() => {
-    if (socket?.connected && chatId && chats?.length) {
-      const foundGroupChat = chats.find(
-        (chat) => chat.id === chatId && chat.type === "group",
-      );
-
-      if (foundGroupChat) {
-        socket.emit(CHAT_EVENTS.JOIN_ROOM, chatId);
-      }
-    }
-  }, [socket?.connected, chatId, chats]);
-
-  useEffect(() => {
-    if (socket?.connected && prevChatId && chats?.length) {
-      const foundGroupChat = chats.find(
-        (chat) => chat.id === prevChatId && chat.type === "group",
-      );
-
-      if (foundGroupChat) {
-        socket.emit(CHAT_EVENTS.LEAVE_ROOM, prevChatId);
-      }
-    }
-  }, [socket?.connected, prevChatId, chats]);
 
   return { onContactClick };
 };
@@ -281,10 +218,23 @@ const useChatLogout = () => {
   return { logout };
 };
 
+const useChatJoinRooms = (socket: Socket | null) => {
+  const chatIds = useStore(
+    useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
+  );
+
+  useEffect(() => {
+    if (socket?.connected && chatIds.length) {
+      socket.emit(CHAT_EVENTS.JOIN_ROOMS, chatIds);
+    }
+  }, [socket?.connected, chatIds]);
+};
+
 export const useChats = () => {
   const { socket } = useChatSocket();
+  useChatJoinRooms(socket);
   const chat = useChatsMessages(socket);
-  const navigation = useChatsNavigation(socket);
+  const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);
   const profile = useChatUser();
   const auth = useChatLogout();
