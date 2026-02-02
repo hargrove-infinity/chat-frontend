@@ -37,6 +37,44 @@ const useChatSocket = () => {
       );
     };
 
+    const onOnline = (onlineInterlocutorId: string): void => {
+      console.log("onlineInterlocutorId", onlineInterlocutorId);
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (
+            chat.type === "direct" &&
+            chat.participants.includes(onlineInterlocutorId)
+          ) {
+            return { ...chat, isOnline: true };
+          }
+
+          return chat;
+        });
+
+        return { chats: updatedChats };
+      });
+    };
+
+    const onOffline = (offlineInterlocutorId: string): void => {
+      console.log("offlineInterlocutorId", offlineInterlocutorId);
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (
+            chat.type === "direct" &&
+            chat.participants.includes(offlineInterlocutorId)
+          ) {
+            return { ...chat, isOnline: false };
+          }
+
+          return chat;
+        });
+
+        return { chats: updatedChats };
+      });
+    };
+
     const onWelcomeMessage = (msg: string) => {
       console.log(`Welcome message: ${msg}`);
     };
@@ -99,6 +137,8 @@ const useChatSocket = () => {
 
     chatSocket.on("connect", onConnect);
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
+    chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
+    chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
     chatSocket.on(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
     chatSocket.on(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);
@@ -108,6 +148,8 @@ const useChatSocket = () => {
     return () => {
       chatSocket.off("connect", onConnect);
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
+      chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
+      chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.MESSAGE_DIRECT, onDirectMessage);
       chatSocket.off(CHAT_EVENTS.JOIN_ROOM_MESSAGE, onJoinRoomMessage);
       chatSocket.off(CHAT_EVENTS.MESSAGE_GROUP, onGroupMessage);

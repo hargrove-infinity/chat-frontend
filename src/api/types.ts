@@ -25,6 +25,7 @@ export interface AuthCredentials {
 export type Chat = {
   id: string;
   type: "direct" | "group";
+  isOnline: boolean;
   name: string;
   participants: string[];
   lastMessage?: string;

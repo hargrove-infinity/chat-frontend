@@ -23,7 +23,10 @@ export const Chats: FC = () => {
               }`}
               onClick={() => hook.navigation.onContactClick(chat.id)}
             >
-              <div className={styles.avatar} />
+              <div className={styles.avatarWrapper}>
+                <div className={styles.avatar} />
+                {chat.isOnline && <span className={styles.onlineBadge} />}
+              </div>
               <div className={styles.contactInfo}>
                 <div className={styles.contactName}>{chat.name}</div>
                 {chat.lastMessage && (
