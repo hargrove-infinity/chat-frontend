@@ -30,7 +30,7 @@ const useChatSocket = () => {
     // });
 
     const onConnect = () => {
-      chatSocket.emit(CONNECTION_EVENTS.CHAT);
+      console.log("Connected");
     };
 
     const onOnline = (onlineInterlocutorId: string): void => {
