@@ -15,7 +15,6 @@ import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
 const useChatSocket = () => {
-  const socket = useStore((state) => state.chatSocket);
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
@@ -130,12 +129,11 @@ const useChatSocket = () => {
       chatSocket.disconnect();
     };
   }, []);
-
-  return { socket };
 };
 
-const useChatsMessages = (socket: Socket | null) => {
+const useChatsMessages = () => {
   const { chatId } = useParams();
+  const socket = useStore((state) => state.chatSocket);
 
   const chats = useStore((state) => state.chats);
   const messages = useStore((state) => state.messages);
@@ -219,7 +217,9 @@ const useChatLogout = () => {
   return { logout };
 };
 
-const useChatJoinRooms = (socket: Socket | null) => {
+const useChatJoinRooms = () => {
+  const socket = useStore((state) => state.chatSocket);
+
   const chatIds = useStore(
     useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
   );
@@ -232,9 +232,9 @@ const useChatJoinRooms = (socket: Socket | null) => {
 };
 
 export const useChats = () => {
-  const { socket } = useChatSocket();
-  useChatJoinRooms(socket);
-  const chat = useChatsMessages(socket);
+  useChatSocket();
+  useChatJoinRooms();
+  const chat = useChatsMessages();
   const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);
   const profile = useChatUser();
