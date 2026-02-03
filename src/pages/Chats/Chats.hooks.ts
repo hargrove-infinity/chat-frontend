@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { useShallow } from "zustand/shallow";
@@ -19,7 +19,13 @@ const useChatSocket = () => {
     useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
   );
 
+  const chatIdsRef = useRef(chatIds);
+
   const setChatSocket = useStore((state) => state.setChatSocket);
+
+  useEffect(() => {
+    chatIdsRef.current = chatIds;
+  }, [chatIds]);
 
   useEffect(() => {
     const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
@@ -35,10 +41,10 @@ const useChatSocket = () => {
     // });
 
     const onConnect = () => {
-      console.log("Joining rooms on connect", chatIds);
+      console.log("Joining rooms on connect", chatIdsRef.current);
 
       if (chatIds.length) {
-        chatSocket.emit(CONNECTION_EVENTS.CHAT, chatIds);
+        chatSocket.emit(CONNECTION_EVENTS.CHAT, chatIdsRef.current);
       }
     };
 
@@ -132,7 +138,7 @@ const useChatSocket = () => {
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
     };
-  }, [chatIds.length]);
+  }, []);
 };
 
 const useChatsMessages = () => {
