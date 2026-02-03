@@ -15,6 +15,10 @@ import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
 const useChatSocket = () => {
+  const chatIds = useStore(
+    useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
+  );
+
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
@@ -31,11 +35,11 @@ const useChatSocket = () => {
     // });
 
     const onConnect = () => {
-      console.log("Connected");
-      chatSocket.emit(
-        CONNECTION_EVENTS.CHAT,
-        `Socket ${chatSocket.id} has connected from the Frontend (chats part)`,
-      );
+      console.log("Joining rooms on connect", chatIds);
+
+      if (chatIds.length) {
+        chatSocket.emit(CONNECTION_EVENTS.CHAT, chatIds);
+      }
     };
 
     const onOnline = (onlineInterlocutorId: string): void => {
@@ -128,7 +132,7 @@ const useChatSocket = () => {
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
     };
-  }, []);
+  }, [chatIds.length]);
 };
 
 const useChatsMessages = () => {
@@ -217,23 +221,8 @@ const useChatLogout = () => {
   return { logout };
 };
 
-const useChatJoinRooms = () => {
-  const socket = useStore((state) => state.chatSocket);
-
-  const chatIds = useStore(
-    useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
-  );
-
-  useEffect(() => {
-    if (socket?.connected && chatIds.length) {
-      socket.emit(CHAT_EVENTS.JOIN_ROOMS, chatIds);
-    }
-  }, [socket?.connected, chatIds]);
-};
-
 export const useChats = () => {
   useChatSocket();
-  useChatJoinRooms();
   const chat = useChatsMessages();
   const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);
