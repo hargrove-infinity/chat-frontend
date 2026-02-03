@@ -8,26 +8,20 @@ import {
   CONNECTION_EVENTS,
   WELCOME_EVENTS,
 } from "../../constants/socket";
-import { useStore } from "../../state/store";
 import type { MessageServer } from "../../api/types";
+import { useStore } from "../../state/store";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
-const useChatsMessages = () => {
-  const { contactId } = useParams();
-  const [socket, setSocket] = useState<Socket | null>(null);
-
-  const chats = useStore((state) => state.chats);
-  const messages = useStore((state) => state.messages);
-  const getChats = useStore((state) => state.getChats);
-  const getMessagesByChat = useStore((state) => state.getMessagesByChat);
+const useChatSocket = () => {
+  const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
     const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
       auth: { token: getToken() },
     });
 
-    setSocket(chatSocket);
+    setChatSocket(chatSocket);
 
     // TODO: Find place where I can apply this
     // chatSocket.onAny((eventName, ...data) => {
@@ -37,24 +31,70 @@ const useChatsMessages = () => {
 
     const onConnect = () => {
       console.log("Connected");
-      chatSocket.emit(
-        CONNECTION_EVENTS.CHAT,
-        `Socket ${chatSocket.id} has connected from the Frontend (chats part)`,
-      );
+    };
+
+    const onOnline = (onlineInterlocutorId: string): void => {
+      console.log("onlineInterlocutorId", onlineInterlocutorId);
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (
+            chat.type === "direct" &&
+            chat.participants.includes(onlineInterlocutorId)
+          ) {
+            return { ...chat, isOnline: true };
+          }
+
+          return chat;
+        });
+
+        return { chats: updatedChats };
+      });
+    };
+
+    const onOffline = (offlineInterlocutorId: string): void => {
+      console.log("offlineInterlocutorId", offlineInterlocutorId);
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (
+            chat.type === "direct" &&
+            chat.participants.includes(offlineInterlocutorId)
+          ) {
+            return { ...chat, isOnline: false };
+          }
+
+          return chat;
+        });
+
+        return { chats: updatedChats };
+      });
     };
 
     const onWelcomeMessage = (msg: string) => {
       console.log(`Welcome message: ${msg}`);
     };
 
-    const onMessage = (msg: MessageServer) => {
+    const onChatMessage = (msg: MessageServer) => {
       console.log("onMessage:", msg);
-      useStore.setState((state) => ({
-        messages: [
-          ...(state.messages || []),
-          { ...msg, isMine: getUser()?.id === msg.senderId },
-        ],
-      }));
+
+      useStore.setState((state) => {
+        const updatedChats = state.chats?.map((chat) => {
+          if (chat.id === msg.chatId) {
+            return { ...chat, lastMessage: msg.content };
+          }
+
+          return chat;
+        });
+
+        return {
+          chats: updatedChats,
+          messages: [
+            ...(state.messages || []),
+            { ...msg, isMine: getUser()?.id === msg.senderId },
+          ],
+        };
+      });
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
@@ -67,40 +107,56 @@ const useChatsMessages = () => {
 
     chatSocket.on("connect", onConnect);
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
-    chatSocket.on(CHAT_EVENTS.MESSAGE, onMessage);
+    chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
+    chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
+    chatSocket.on(CHAT_EVENTS.MESSAGE, onChatMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
     return () => {
       chatSocket.off("connect", onConnect);
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
-      chatSocket.off(CHAT_EVENTS.MESSAGE, onMessage);
+      chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
+      chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
+      chatSocket.off(CHAT_EVENTS.MESSAGE, onChatMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
     };
   }, []);
+};
+
+const useChatsMessages = () => {
+  const { chatId } = useParams();
+  const socket = useStore((state) => state.chatSocket);
+
+  const chats = useStore((state) => state.chats);
+  const messages = useStore((state) => state.messages);
+  const getChats = useStore((state) => state.getChats);
+  const getMessagesByChat = useStore((state) => state.getMessagesByChat);
 
   useEffect(() => {
     getChats();
   }, []);
 
   useEffect(() => {
-    if (contactId) {
-      getMessagesByChat(contactId);
+    if (chatId) {
+      getMessagesByChat(chatId);
     }
-  }, [contactId]);
+  }, [chatId]);
 
   const sendMessage = (content: string) => {
-    if (!contactId || !content.trim()) return;
+    if (!socket || !chats?.length || !chatId || !content.trim()) return;
 
-    if (socket) {
-      socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId: contactId });
-    }
+    const currentChat = chats.find((chat) => chat.id === chatId);
+
+    if (!currentChat) return;
+
+    socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId });
   };
 
   return {
-    contactId,
+    chatId,
     chats: chats || [],
     messages: messages || [],
     sendMessage,
@@ -131,7 +187,7 @@ const useChatsNavigation = () => {
   const navigate = useNavigate();
 
   const onContactClick = (id: string): void => {
-    navigate(`${CHATS}/${id}`, { replace: false });
+    navigate(`${CHATS}/${id}`);
   };
 
   return { onContactClick };
@@ -157,6 +213,7 @@ const useChatLogout = () => {
 };
 
 export const useChats = () => {
+  useChatSocket();
   const chat = useChatsMessages();
   const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);

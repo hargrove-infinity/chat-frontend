@@ -19,11 +19,14 @@ export const Chats: FC = () => {
             <li
               key={chat.id}
               className={`${styles.contactItem} ${
-                hook.chat.contactId === chat.id ? styles.contactItemActive : ""
+                hook.chat.chatId === chat.id ? styles.contactItemActive : ""
               }`}
               onClick={() => hook.navigation.onContactClick(chat.id)}
             >
-              <div className={styles.avatar} />
+              <div className={styles.avatarWrapper}>
+                <div className={styles.avatar} />
+                {chat.isOnline && <span className={styles.onlineBadge} />}
+              </div>
               <div className={styles.contactInfo}>
                 <div className={styles.contactName}>{chat.name}</div>
                 {chat.lastMessage && (
@@ -70,7 +73,13 @@ export const Chats: FC = () => {
                 message.isMine ? styles.myMessage : styles.theirMessage
               }`}
             >
+              {/* Sender name (optional) */}
+              {!message.isMine && message.senderName && (
+                <div className={styles.senderName}>{message.senderName}</div>
+              )}
+              {/* Message content */}
               <div className={styles.messageBubble}>{message.content}</div>
+              {/* Message datetime */}
               <div className={styles.messageTime}>
                 {formatDateTime(message.createdAt)}
               </div>
