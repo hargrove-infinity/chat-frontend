@@ -1,7 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
-import { useShallow } from "zustand/shallow";
 import { CHATS } from "../../constants/routes";
 import {
   CHAT_EVENTS,
@@ -15,10 +14,6 @@ import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 
 const useChatSocket = () => {
-  const chatIds = useStore(
-    useShallow((state) => state.chats?.map((chat) => chat.id) ?? []),
-  );
-
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
@@ -35,11 +30,7 @@ const useChatSocket = () => {
     // });
 
     const onConnect = () => {
-      console.log("Joining rooms on connect", chatIds);
-
-      if (chatIds.length) {
-        chatSocket.emit(CONNECTION_EVENTS.CHAT, chatIds);
-      }
+      chatSocket.emit(CONNECTION_EVENTS.CHAT);
     };
 
     const onOnline = (onlineInterlocutorId: string): void => {
@@ -132,7 +123,7 @@ const useChatSocket = () => {
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
     };
-  }, [chatIds.length]);
+  }, []);
 };
 
 const useChatsMessages = () => {
