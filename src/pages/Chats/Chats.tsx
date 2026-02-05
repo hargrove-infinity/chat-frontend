@@ -3,6 +3,14 @@ import { formatDateTime } from "../../utils/formatDateTime";
 import { useChats } from "./Chats.hooks";
 import styles from "./Chats.module.css";
 
+enum MessageStatusEnum {
+  SENDING = "sending",
+  SENT = "sent",
+  ERROR = "error",
+}
+
+const status: MessageStatusEnum = MessageStatusEnum.SENT;
+
 export const Chats: FC = () => {
   const hook = useChats();
 
@@ -71,7 +79,8 @@ export const Chats: FC = () => {
               key={message.id}
               className={`${styles.message} ${
                 message.isMine ? styles.myMessage : styles.theirMessage
-              }`}
+                // @ts-ignore
+              } ${status === MessageStatusEnum.ERROR && styles.error}`}
             >
               {/* Sender name (optional) */}
               {!message.isMine && message.senderName && (
@@ -79,9 +88,43 @@ export const Chats: FC = () => {
               )}
               {/* Message content */}
               <div className={styles.messageBubble}>{message.content}</div>
-              {/* Message datetime */}
-              <div className={styles.messageTime}>
-                {formatDateTime(message.createdAt)}
+              {/* Message datetime & status */}
+              <div className={styles.messageMeta}>
+                <span className={styles.messageTime}>
+                  {formatDateTime(message.createdAt)}
+                </span>
+
+                {message.isMine && (
+                  <div className={styles.messageStatus}>
+                    {/* {status === "sending" && (
+                      <div className={styles.sendingClock} />
+                    )} */}
+                    {status === "sent" && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                        className={styles.checkIcon}
+                      >
+                        <polyline points="4 13 9 18 20 6" />
+                      </svg>
+                    )}
+                    {/* {status === "error" && (
+                      <svg
+                        className={styles.errorIcon}
+                        viewBox="0 0 24 24"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="11" />
+                        <line x1="12" y1="6" x2="12" y2="14" />
+                        <circle cx="12" cy="18" r="1.2" />
+                      </svg>
+                    )} */}
+                  </div>
+                )}
               </div>
             </div>
           ))}

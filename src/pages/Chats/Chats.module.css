@@ -148,6 +148,27 @@
   color: var(--text-sender);
 }
 
+.messageMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.messageStatus {
+  font-size: 12px;
+}
+
+.myMessage .messageStatus {
+  color: var(--text-primary);
+}
+
+.myMessage[data-status="error"] .messageStatus {
+  color: var(--error);
+}
+
 /* Input */
 .inputArea {
   display: flex;
@@ -250,4 +271,108 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* == Message statuses == */
+
+/* Sending */
+
+/* Container */
+.sendingClock {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+/* Minute hand (fast) */
+.sendingClock::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  width: 1.5px;
+  height: 5px;
+  background-color: var(--text-secondary);
+  transform-origin: bottom center;
+  transform: translateX(-50%);
+  animation: clockMinuteRotate 1.2s linear infinite;
+}
+
+/* Hour hand (slow) */
+.sendingClock::after {
+  content: "";
+  position: absolute;
+  top: 1.5px;
+  left: 50%;
+  width: 1.5px;
+  height: 4.5px;
+  background-color: var(--text-secondary);
+  transform-origin: bottom center;
+  transform: translateX(-50%);
+  animation: clockHourRotate 3.6s linear infinite;
+}
+
+/* Animations */
+@keyframes clockMinuteRotate {
+  from {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+@keyframes clockHourRotate {
+  from {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+/* Error */
+
+/* Error message bubble */
+.myMessage.error .messageBubble {
+  background-color: var(--error-bg);
+  color: var(--error);
+}
+
+/* Status container */
+.messageStatus {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Timestamp */
+.myMessage.error .messageTime {
+  color: var(--error);
+}
+
+/* Error icon */
+.errorIcon {
+  stroke: var(--error);
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.9;
+}
+
+/* Optional hover emphasis */
+.myMessage.error:hover .errorIcon {
+  opacity: 1;
+}
+
+/* Sent */
+
+.checkIcon {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
