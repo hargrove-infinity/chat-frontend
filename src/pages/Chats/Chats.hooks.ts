@@ -1,6 +1,7 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
+import { v4 as uuidv4 } from "uuid";
 import { CHATS } from "../../constants/routes";
 import {
   CHAT_EVENTS,
@@ -8,10 +9,11 @@ import {
   CONNECTION_EVENTS,
   WELCOME_EVENTS,
 } from "../../constants/socket";
-import type { MessageServer } from "../../api/types";
+import { MessageStatusEnum, type MessageServer } from "../../api/types";
 import { useStore } from "../../state/store";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
+import type { SendMessageAck } from "./Chats.types";
 
 const useChatSocket = () => {
   const setChatSocket = useStore((state) => state.setChatSocket);
@@ -75,8 +77,10 @@ const useChatSocket = () => {
       console.log(`Welcome message: ${msg}`);
     };
 
-    const onChatMessage = (msg: MessageServer) => {
+    const onChatNewMessage = (msg: MessageServer | null) => {
       console.log("onMessage:", msg);
+
+      if (!msg) return;
 
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
@@ -91,7 +95,12 @@ const useChatSocket = () => {
           chats: updatedChats,
           messages: [
             ...(state.messages || []),
-            { ...msg, isMine: getUser()?.id === msg.senderId },
+            {
+              ...msg,
+              isMine: getUser()?.id === msg.senderId,
+              // Messages from server are already sent successfully, no error
+              error: null,
+            },
           ],
         };
       });
@@ -109,7 +118,7 @@ const useChatSocket = () => {
     chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
-    chatSocket.on(CHAT_EVENTS.MESSAGE, onChatMessage);
+    chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
     chatSocket.on("connect_error", onConnectError);
     chatSocket.on("disconnect", onDisconnect);
 
@@ -118,7 +127,7 @@ const useChatSocket = () => {
       chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
-      chatSocket.off(CHAT_EVENTS.MESSAGE, onChatMessage);
+      chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
       chatSocket.disconnect();
@@ -128,8 +137,8 @@ const useChatSocket = () => {
 
 const useChatsMessages = () => {
   const { chatId } = useParams();
+  const user = getUser();
   const socket = useStore((state) => state.chatSocket);
-
   const chats = useStore((state) => state.chats);
   const messages = useStore((state) => state.messages);
   const getChats = useStore((state) => state.getChats);
@@ -146,13 +155,78 @@ const useChatsMessages = () => {
   }, [chatId]);
 
   const sendMessage = (content: string) => {
-    if (!socket || !chats?.length || !chatId || !content.trim()) return;
+    if (!socket || !chats?.length || !chatId || !content.trim() || !user) {
+      return;
+    }
 
     const currentChat = chats.find((chat) => chat.id === chatId);
 
     if (!currentChat) return;
 
-    socket.emit(CHAT_EVENTS.MESSAGE, { content, chatId });
+    const tempId = uuidv4();
+
+    // Optimistic message before server confirmation
+    const messageToSend = {
+      id: tempId,
+      chatId,
+      senderId: user.id,
+      senderName: `${user.firstName} ${user.lastName}`,
+      content,
+      status: MessageStatusEnum.SENDING,
+      isMine: true,
+      // No error yet - message is being sent
+      error: null,
+      // Timestamps are null until server responds with real values
+      createdAt: null,
+      updatedAt: null,
+    };
+
+    useStore.setState((state) => {
+      return {
+        messages: [...(state.messages || []), messageToSend],
+      };
+    });
+
+    socket.emit(
+      CHAT_EVENTS.SEND_MESSAGE,
+      { content, chatId, tempId },
+      (ack: SendMessageAck) => {
+        if (ack.ok) {
+          useStore.setState((state) => {
+            const updMsgs = state.messages?.map((msg) => {
+              if (msg.id === tempId && ack.message) {
+                return {
+                  ...ack.message,
+                  isMine: true,
+                  // Server confirmed success, clear any potential error
+                  error: null,
+                };
+              }
+
+              return msg;
+            });
+
+            return { messages: [...(updMsgs || [])] };
+          });
+        } else {
+          useStore.setState((state) => {
+            const updMsgs = state.messages?.map((msg) => {
+              if (msg.id === tempId) {
+                return {
+                  ...msg,
+                  error: ack.error,
+                  status: MessageStatusEnum.ERROR,
+                };
+              }
+
+              return msg;
+            });
+
+            return { messages: [...(updMsgs || [])] };
+          });
+        }
+      },
+    );
   };
 
   return {

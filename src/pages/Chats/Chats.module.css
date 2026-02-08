@@ -359,12 +359,20 @@
   stroke: var(--error);
   fill: none;
   stroke-width: 2;
-  opacity: 0.9;
 }
 
-/* Optional hover emphasis */
-.myMessage.error:hover .errorIcon {
-  opacity: 1;
+/* Error Container */
+.errorContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Error Text */
+.errorText {
+  font-size: 11px;
+  color: var(--error);
+  font-weight: 500;
 }
 
 /* Sent */
