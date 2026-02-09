@@ -22,26 +22,58 @@ export interface AuthCredentials {
 }
 
 // Chats
+/**
+ * Chat received from server (matches backend ChatDTO)
+ * Contains resolved name for both direct and group chats
+ */
 export type Chat = {
   id: string;
   type: "direct" | "group";
-  isOnline: boolean;
-  name: string;
+  /** Resolved chat name (participant's name for direct, stored name for group) */
+  name: string | null;
   participants: string[];
-  lastMessage?: string;
+  lastMessage: string | null;
+  isOnline: boolean;
   createdAt: string;
   updatedAt: string;
 };
 
-export type MessageLocal = {
+/**
+ * Message status for tracking send state
+ */
+export enum MessageStatusEnum {
+  /** Message is being sent to server */
+  SENDING = "SENDING",
+  /** Message successfully delivered to server */
+  SENT = "SENT",
+  /** Message failed to send */
+  ERROR = "ERROR",
+}
+
+/**
+ * Message received from server (matches backend MessageDTO)
+ */
+export type MessageServer = {
   id: string;
   chatId: string;
   senderId: string;
   senderName: string | null;
   content: string;
-  isMine: boolean;
+  status: MessageStatusEnum;
   createdAt: string;
   updatedAt: string;
 };
 
-export type MessageServer = Omit<MessageLocal, "isMine">;
+/**
+ * Client-side message with additional UI state
+ * Extends MessageServer with optimistic update support
+ */
+export type MessageLocal = Omit<MessageServer, "createdAt" | "updatedAt"> & {
+  isMine: boolean;
+  /** Error message from SendMessageAck when send fails (status becomes ERROR) */
+  error: string | null;
+  /** Null for optimistic messages before server confirmation */
+  createdAt: string | null;
+  /** Null for optimistic messages before server confirmation */
+  updatedAt: string | null;
+};

@@ -25,6 +25,9 @@
 
   --green: #2ecc71;
 
+  --error: #ff4d4f;
+  --error-bg: #ff4d4f26;
+
   font-family: "Montserrat", system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;

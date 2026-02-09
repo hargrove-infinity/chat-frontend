@@ -54,6 +54,8 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
       const messagesWithOwners = payload.map((msg) => ({
         ...msg,
         isMine: getUser()?.id === msg.senderId,
+        // Messages fetched from server have no errors (successfully retrieved)
+        error: null,
       }));
 
       set({ loadingGetMessagesByChat: false, messages: messagesWithOwners });
