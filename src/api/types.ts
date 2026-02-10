@@ -22,6 +22,9 @@ export interface AuthCredentials {
 }
 
 // Chats
+
+export type Participant = { id: string; name: string; isTyping: boolean };
+
 /**
  * Chat received from server (matches backend ChatDTO)
  * Contains resolved name for both direct and group chats
@@ -31,7 +34,7 @@ export type Chat = {
   type: "direct" | "group";
   /** Resolved chat name (participant's name for direct, stored name for group) */
   name: string | null;
-  participants: string[];
+  participants: Participant[];
   lastMessage: string | null;
   isOnline: boolean;
   createdAt: string;
