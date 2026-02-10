@@ -302,7 +302,7 @@ const useChatsMessages = () => {
   };
 
   useEffect(() => {
-    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING, { chatId });
+    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
   }, [chatId]);
 
   return {
@@ -334,28 +334,28 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
       e.preventDefault();
       handleSend();
 
-      socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING, { chatId });
+      socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
     } else {
-      socket?.volatile.emit(CHAT_EVENTS.START_TYPING, { chatId });
+      socket?.volatile.emit(CHAT_EVENTS.START_TYPING_DISPATCH, { chatId });
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
       typingTimeoutRef.current = setTimeout(() => {
-        socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING, { chatId });
+        socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
         typingTimeoutRef.current = null;
       }, TYPING_TIMEOUT);
     }
   };
 
   const emitStopTyping = (): void => {
-    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING, { chatId });
+    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
   };
 
   return {
