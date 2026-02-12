@@ -28,6 +28,7 @@ export const Chats: FC = () => {
                 <div className={styles.avatar} />
                 {chat.isOnline && <span className={styles.onlineBadge} />}
               </div>
+
               <div className={styles.contactInfo}>
                 <div className={styles.contactName}>{chat.name}</div>
                 {chat.lastMessage && (
@@ -55,6 +56,7 @@ export const Chats: FC = () => {
               </div>
             </div>
           )}
+
           <div className={styles.logoutWrapper}>
             <button className={styles.logoutButton} onClick={hook.auth.logout}>
               Logout
@@ -78,9 +80,9 @@ export const Chats: FC = () => {
               {!message.isMine && message.senderName && (
                 <div className={styles.senderName}>{message.senderName}</div>
               )}
-              {/* Message content */}
+
               <div className={styles.messageBubble}>{message.content}</div>
-              {/* Message datetime & status */}
+
               <div className={styles.messageMeta}>
                 {message.createdAt && (
                   <span className={styles.messageTime}>
@@ -93,6 +95,7 @@ export const Chats: FC = () => {
                     {message.status === MessageStatusEnum.SENDING && (
                       <div className={styles.sendingClock} />
                     )}
+
                     {message.status === MessageStatusEnum.SENT && (
                       <svg
                         viewBox="0 0 24 24"
@@ -104,6 +107,7 @@ export const Chats: FC = () => {
                         <polyline points="4 13 9 18 20 6" />
                       </svg>
                     )}
+
                     {message.status === MessageStatusEnum.ERROR && (
                       <div className={styles.errorContainer}>
                         <svg
@@ -117,6 +121,7 @@ export const Chats: FC = () => {
                           <line x1="12" y1="6" x2="12" y2="14" />
                           <circle cx="12" cy="18" r="1.2" />
                         </svg>
+
                         {message.error && (
                           <span className={styles.errorText}>
                             {message.error}
@@ -131,6 +136,18 @@ export const Chats: FC = () => {
           ))}
         </div>
 
+        {/* Typing indicator */}
+        {hook.typing.typingText && (
+          <div className={styles.typingIndicator}>
+            <span className={styles.typingText}>{hook.typing.typingText}</span>
+            <span className={styles.typingDots}>
+              <span />
+              <span />
+              <span />
+            </span>
+          </div>
+        )}
+
         {/* Input */}
         <div className={styles.inputArea}>
           <textarea
@@ -139,6 +156,7 @@ export const Chats: FC = () => {
             value={hook.sendMessage.inputValue}
             onChange={(e) => hook.sendMessage.setInputValue(e.target.value)}
             onKeyDown={hook.sendMessage.handleKeyDown}
+            onBlur={hook.sendMessage.emitStopTyping}
           />
           <button
             className={styles.sendButton}

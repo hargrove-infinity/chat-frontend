@@ -75,3 +75,20 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
     }
   },
 });
+
+// Selector for typing participants
+export const selectTypingParticipants = (
+  state: ChatsSlice,
+  chatId: string | undefined,
+  currentUserId: string | undefined,
+) => {
+  if (!chatId || !currentUserId) return [];
+
+  const activeChat = state.chats?.find((chat) => chat.id === chatId);
+
+  return (
+    activeChat?.participants.filter(
+      (p) => p.isTyping && p.id !== currentUserId,
+    ) ?? []
+  );
+};
