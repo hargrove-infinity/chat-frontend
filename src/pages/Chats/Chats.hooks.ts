@@ -332,7 +332,6 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
 
       socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
 
@@ -340,6 +339,8 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
+
+      handleSend();
     } else {
       socket?.volatile.emit(CHAT_EVENTS.START_TYPING_DISPATCH, { chatId });
 
