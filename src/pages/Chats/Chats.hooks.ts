@@ -8,7 +8,6 @@ import {
   CHAT_EVENTS,
   CHAT_NAMESPACE,
   CONNECTION_EVENTS,
-  WELCOME_EVENTS,
 } from "../../constants/socket";
 import { MessageStatusEnum, type MessageServer } from "../../api/types";
 import { useStore } from "../../state/store";
@@ -76,10 +75,6 @@ const useChatSocket = () => {
 
         return { chats: updatedChats };
       });
-    };
-
-    const onWelcomeMessage = (msg: string) => {
-      console.log(`Welcome message: ${msg}`);
     };
 
     const onChatNewMessage = (msg: MessageServer | null) => {
@@ -180,7 +175,6 @@ const useChatSocket = () => {
     };
 
     chatSocket.on("connect", onConnect);
-    chatSocket.on(WELCOME_EVENTS.CHAT, onWelcomeMessage);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
@@ -191,7 +185,6 @@ const useChatSocket = () => {
 
     return () => {
       chatSocket.off("connect", onConnect);
-      chatSocket.off(WELCOME_EVENTS.CHAT, onWelcomeMessage);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
@@ -332,7 +325,6 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
 
       socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
 
@@ -340,6 +332,8 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
+
+      handleSend();
     } else {
       socket?.volatile.emit(CHAT_EVENTS.START_TYPING_DISPATCH, { chatId });
 
