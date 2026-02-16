@@ -5,11 +5,12 @@ import {
   ADMIN_NAMESPACE,
   CONNECTION_EVENTS,
 } from "../../constants/socket";
+import type { AdminSocket } from "../../state/appSlice.types";
 import { getToken } from "../../utils/token";
 
 export const Metrics = () => {
   useEffect(() => {
-    const adminSocket = io(
+    const adminSocket: AdminSocket = io(
       `${import.meta.env.VITE_BASE_URL}${ADMIN_NAMESPACE}`,
       { auth: { token: getToken(), isAdmin: true } },
     );

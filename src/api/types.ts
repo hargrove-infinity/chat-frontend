@@ -56,7 +56,7 @@ export enum MessageStatusEnum {
 /**
  * Message received from server (matches backend MessageDTO)
  */
-export type MessageServer = {
+export type MessageDTO = {
   id: string;
   chatId: string;
   senderId: string;
@@ -69,9 +69,9 @@ export type MessageServer = {
 
 /**
  * Client-side message with additional UI state
- * Extends MessageServer with optimistic update support
+ * Extends MessageDTO with optimistic update support
  */
-export type MessageLocal = Omit<MessageServer, "createdAt" | "updatedAt"> & {
+export type MessageLocal = Omit<MessageDTO, "createdAt" | "updatedAt"> & {
   isMine: boolean;
   /** Error message from SendMessageAck when send fails (status becomes ERROR) */
   error: string | null;

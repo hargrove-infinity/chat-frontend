@@ -9,12 +9,12 @@ import {
   CHAT_NAMESPACE,
   CONNECTION_EVENTS,
 } from "../../constants/socket";
-import { MessageStatusEnum, type MessageServer } from "../../api/types";
+import { MessageStatusEnum, type MessageDTO } from "../../api/types";
 import { useStore } from "../../state/store";
+import type { ChatSocket } from "../../state/appSlice.types";
+import { selectTypingParticipants } from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
-import type { SendMessageAck } from "./Chats.types";
-import { selectTypingParticipants } from "../../state/chatsSlice";
 import { getTypingText } from "./Chats.helpers";
 
 const TYPING_TIMEOUT = 2000;
@@ -23,9 +23,12 @@ const useChatSocket = () => {
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
-    const chatSocket = io(`${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`, {
-      auth: { token: getToken() },
-    });
+    const chatSocket: ChatSocket = io(
+      `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
+      {
+        auth: { token: getToken() },
+      },
+    );
 
     setChatSocket(chatSocket);
 
@@ -77,10 +80,8 @@ const useChatSocket = () => {
       });
     };
 
-    const onChatNewMessage = (msg: MessageServer | null) => {
+    const onChatNewMessage = (msg: MessageDTO) => {
       console.log("onMessage:", msg);
-
-      if (!msg) return;
 
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
@@ -255,7 +256,7 @@ const useChatsMessages = () => {
     socket.emit(
       CHAT_EVENTS.SEND_MESSAGE,
       { content, chatId, tempId },
-      (ack: SendMessageAck) => {
+      (ack) => {
         if (ack.ok) {
           useStore.setState((state) => {
             const updMsgs = state.messages?.map((msg) => {
@@ -295,7 +296,9 @@ const useChatsMessages = () => {
   };
 
   useEffect(() => {
-    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+    if (chatId) {
+      socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+    }
   }, [chatId]);
 
   return {
@@ -326,7 +329,9 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 
-      socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+      if (chatId) {
+        socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+      }
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -335,21 +340,28 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
 
       handleSend();
     } else {
-      socket?.volatile.emit(CHAT_EVENTS.START_TYPING_DISPATCH, { chatId });
+      if (chatId) {
+        socket?.volatile.emit(CHAT_EVENTS.START_TYPING_DISPATCH, { chatId });
+      }
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
       typingTimeoutRef.current = setTimeout(() => {
-        socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+        if (chatId) {
+          socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+        }
+
         typingTimeoutRef.current = null;
       }, TYPING_TIMEOUT);
     }
   };
 
   const emitStopTyping = (): void => {
-    socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+    if (chatId) {
+      socket?.volatile.emit(CHAT_EVENTS.STOP_TYPING_DISPATCH, { chatId });
+    }
   };
 
   return {
