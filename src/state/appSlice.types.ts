@@ -1,3 +1,4 @@
+import type { EventsMap } from "@socket.io/component-emitter";
 import type { Socket } from "socket.io-client";
 import type { MessageDTO } from "../api/types";
 import type { CHAT_EVENTS, CONNECTION_EVENTS } from "../constants/socket";
@@ -66,3 +67,9 @@ export type ChatSocket = Socket<
   ServerToClientEventsChats,
   ClientToServerEventsChats
 >;
+
+type ClientToServerEventsAdmin = {
+  [CONNECTION_EVENTS.ADMIN]: (msg: string) => void;
+};
+
+export type AdminSocket = Socket<EventsMap, ClientToServerEventsAdmin>;
