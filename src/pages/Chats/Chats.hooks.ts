@@ -23,23 +23,56 @@ const useChatSocket = () => {
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
+    const testSocket = io(import.meta.env.VITE_BASE_URL, {
+      // transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    const onConnect = () => {
+      console.log("Connected testSocket");
+      console.log("testSocket.recovered:", testSocket.recovered);
+    };
+
+    const onReconnectAttempt = () => {
+      console.log("Attempting reconnect with ID testSocket:", testSocket.id);
+    };
+
+    testSocket.on("connect", onConnect);
+    testSocket.io.on("reconnect_attempt", onReconnectAttempt);
+
+    return () => {
+      testSocket.off("connect", onConnect);
+      testSocket.io.off("reconnect_attempt", onReconnectAttempt);
+    };
+  }, []);
+
+  useEffect(() => {
     const chatSocket: ChatSocket = io(
       `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
+        transports: ["websocket"],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       },
     );
 
     setChatSocket(chatSocket);
 
     // TODO: Find place where I can apply this
-    // chatSocket.onAny((eventName, ...data) => {
-    //   console.log("eventName", eventName);
-    //   console.log("data", data);
-    // });
+    chatSocket.onAny((eventName, ...data) => {
+      console.log("eventName", eventName);
+      console.log("data", data);
+    });
 
     const onConnect = () => {
       console.log("Connected");
+      console.log("chatSocket.recovered:", chatSocket.recovered);
+    };
+
+    const onReconnectAttempt = () => {
+      console.log("Attempting reconnect with ID:", chatSocket.id);
     };
 
     const onOnline = (onlineInterlocutorId: string): void => {
@@ -176,6 +209,7 @@ const useChatSocket = () => {
     };
 
     chatSocket.on("connect", onConnect);
+    chatSocket.io.on("reconnect_attempt", onReconnectAttempt);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
@@ -186,6 +220,7 @@ const useChatSocket = () => {
 
     return () => {
       chatSocket.off("connect", onConnect);
+      chatSocket.io.off("reconnect_attempt", onReconnectAttempt);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
