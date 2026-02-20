@@ -23,36 +23,10 @@ const useChatSocket = () => {
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
-    const testSocket = io(import.meta.env.VITE_BASE_URL, {
-      // transports: ["websocket"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    const onConnect = () => {
-      console.log("Connected testSocket");
-      console.log("testSocket.recovered:", testSocket.recovered);
-    };
-
-    const onReconnectAttempt = () => {
-      console.log("Attempting reconnect with ID testSocket:", testSocket.id);
-    };
-
-    testSocket.on("connect", onConnect);
-    testSocket.io.on("reconnect_attempt", onReconnectAttempt);
-
-    return () => {
-      testSocket.off("connect", onConnect);
-      testSocket.io.off("reconnect_attempt", onReconnectAttempt);
-    };
-  }, []);
-
-  useEffect(() => {
     const chatSocket: ChatSocket = io(
       `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
-        transports: ["websocket"],
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
       },
