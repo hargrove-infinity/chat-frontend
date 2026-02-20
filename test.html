@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <button onclick="drop()">Drop</button>
+  <script src="https://cdn.socket.io/4.6.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("http://localhost:4000", {
+      auth: { token: "eyJpZCI6IjJhMWU0ZDlmLTllNWItNGI3ZS04YjJmLTZkM2MxYTlmMGUyMSIsInNvY2tldElkIjpudWxsLCJlbWFpbCI6ImphbWVzLndhbGtlckBtYWlsLmNvbSIsImZpcnN0TmFtZSI6IkphbWVzIiwibGFzdE5hbWUiOiJXYWxrZXIiLCJpc0FkbWluIjpmYWxzZSwiY3JlYXRlZEF0IjoiMjAyNC0wMS0wMlQxMDowMDowMFoiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTAyVDEwOjAwOjAwWiJ9" },
+      transports: ["polling", "websocket"],
+    });
+
+    console.log('socket.io.engine._pid:', socket.io.engine._pid);
+
+    socket.on("connect", () => {
+      console.log("connected, id:", socket.id, "recovered:", socket.recovered);
+      console.log("engine id:", socket.io.engine.id);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("disconnect:", reason);
+    });
+
+    function drop() {
+      socket.emit("drop_me");
+    }
+  </script>
+</body>
+
+</html>

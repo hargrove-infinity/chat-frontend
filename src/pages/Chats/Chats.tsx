@@ -3,9 +3,12 @@ import { MessageStatusEnum } from "../../api/types";
 import { formatDateTime } from "../../utils/formatDateTime";
 import { useChats } from "./Chats.hooks";
 import styles from "./Chats.module.css";
+import { useStore } from "../../state/store";
 
 export const Chats: FC = () => {
   const hook = useChats();
+  const chatSocket = useStore((state) => state.chatSocket);
+
 
   return (
     <div className={styles.container}>
@@ -19,9 +22,8 @@ export const Chats: FC = () => {
           {hook.chat.chats.map((chat) => (
             <li
               key={chat.id}
-              className={`${styles.contactItem} ${
-                hook.chat.chatId === chat.id ? styles.contactItemActive : ""
-              }`}
+              className={`${styles.contactItem} ${hook.chat.chatId === chat.id ? styles.contactItemActive : ""
+                }`}
               onClick={() => hook.navigation.onContactClick(chat.id)}
             >
               <div className={styles.avatarWrapper}>
@@ -58,7 +60,12 @@ export const Chats: FC = () => {
           )}
 
           <div className={styles.logoutWrapper}>
-            <button className={styles.logoutButton} onClick={hook.auth.logout}>
+            <button className={styles.logoutButton} onClick={() => {
+              console.log("closing...");
+              console.log("closing engine, socket id:", chatSocket?.id);
+              console.log("transport name:", chatSocket?.io.engine.transport.name);
+              chatSocket?.io.engine.transport.close();
+            }}>
               Logout
             </button>
           </div>
@@ -72,9 +79,8 @@ export const Chats: FC = () => {
           {hook.chat.messages.map((message) => (
             <div
               key={message.id}
-              className={`${styles.message} ${
-                message.isMine ? styles.myMessage : styles.theirMessage
-              } ${message.status === MessageStatusEnum.ERROR && styles.error}`}
+              className={`${styles.message} ${message.isMine ? styles.myMessage : styles.theirMessage
+                } ${message.status === MessageStatusEnum.ERROR && styles.error}`}
             >
               {/* Sender name (optional) */}
               {!message.isMine && message.senderName && (

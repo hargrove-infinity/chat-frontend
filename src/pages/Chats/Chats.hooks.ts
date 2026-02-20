@@ -16,6 +16,7 @@ import { selectTypingParticipants } from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 import { getTypingText } from "./Chats.helpers";
+import chatSocket from "../../utils/chatSocket";
 
 const TYPING_TIMEOUT = 2000;
 
@@ -28,6 +29,8 @@ const useChatSocket = () => {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
+
+
 
     const onConnect = () => {
       console.log("Connected testSocket");
@@ -48,15 +51,10 @@ const useChatSocket = () => {
   }, []);
 
   useEffect(() => {
-    const chatSocket: ChatSocket = io(
-      `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
-      {
-        auth: { token: getToken() },
-        transports: ["websocket"],
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      },
-    );
+    console.log('chatSocket')
+    chatSocket.io.engine.on("open", () => {
+      console.log("transport query:", chatSocket.io.engine.transport.query);
+    });
 
     setChatSocket(chatSocket);
 
@@ -67,8 +65,11 @@ const useChatSocket = () => {
     });
 
     const onConnect = () => {
-      console.log("Connected");
+      console.log("connected!");
+      console.log("chatSocket._pid after reconnect:", (chatSocket as any)._pid);
       console.log("chatSocket.recovered:", chatSocket.recovered);
+      console.log("_lastOffset:", (chatSocket as any)._lastOffset);
+
     };
 
     const onReconnectAttempt = () => {
@@ -231,7 +232,7 @@ const useChatSocket = () => {
       chatSocket.off(CHAT_EVENTS.STOP_TYPING_BROADCAST, onStopTypingBroadcast);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
-      chatSocket.disconnect();
+      // chatSocket.disconnect();
     };
   }, []);
 };
