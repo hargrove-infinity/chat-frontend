@@ -231,7 +231,7 @@ const useChatSocket = () => {
       chatSocket.off(CHAT_EVENTS.STOP_TYPING_BROADCAST, onStopTypingBroadcast);
       chatSocket.off("connect_error", onConnectError);
       chatSocket.off("disconnect", onDisconnect);
-      chatSocket.disconnect();
+      // chatSocket.disconnect();
     };
   }, []);
 };
