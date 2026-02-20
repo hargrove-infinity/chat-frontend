@@ -27,8 +27,9 @@ const useChatSocket = () => {
       `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
-        reconnectionAttempts: 5,
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000,
       },
     );
 
