@@ -27,24 +27,15 @@ const useChatSocket = () => {
       `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000,
       },
     );
 
     setChatSocket(chatSocket);
 
-    // TODO: Find place where I can apply this
-    // chatSocket.onAny((eventName, ...data) => {
-    //   console.log("eventName", eventName);
-    //   console.log("data", data);
-    // });
-
-    const onConnect = () => {
-      console.log("Connected");
-    };
-
     const onOnline = (onlineInterlocutorId: string): void => {
-      console.log("onlineInterlocutorId", onlineInterlocutorId);
-
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (
@@ -62,8 +53,6 @@ const useChatSocket = () => {
     };
 
     const onOffline = (offlineInterlocutorId: string): void => {
-      console.log("offlineInterlocutorId", offlineInterlocutorId);
-
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (
@@ -81,8 +70,6 @@ const useChatSocket = () => {
     };
 
     const onChatNewMessage = (msg: MessageDTO) => {
-      console.log("onMessage:", msg);
-
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (chat.id === msg.chatId) {
@@ -175,7 +162,6 @@ const useChatSocket = () => {
       });
     };
 
-    chatSocket.on("connect", onConnect);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
@@ -185,7 +171,6 @@ const useChatSocket = () => {
     chatSocket.on("disconnect", onDisconnect);
 
     return () => {
-      chatSocket.off("connect", onConnect);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
