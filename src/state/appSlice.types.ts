@@ -55,13 +55,11 @@ type ClientToServerEventsChats = {
     payload: ChatMessagePayload,
     callback: SendMessageCallback,
   ) => void;
-  [CHAT_EVENTS.START_TYPING_DISPATCH]: (payload: TypingDispatchPayload) => void;
-  [CHAT_EVENTS.STOP_TYPING_DISPATCH]: (payload: TypingDispatchPayload) => void;
+  [CHAT_EVENTS.START_TYPING_DISPATCH]: (chatId: string) => void;
+  [CHAT_EVENTS.STOP_TYPING_DISPATCH]: (chatId: string) => void;
 };
 
 type TypingBroadcastPayload = { chatId: string; userId: string };
-
-type TypingDispatchPayload = Pick<TypingBroadcastPayload, "chatId">;
 
 export type ChatSocket = Socket<
   ServerToClientEventsChats,
