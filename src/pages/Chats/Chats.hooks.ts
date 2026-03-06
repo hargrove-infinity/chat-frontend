@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
@@ -9,7 +15,12 @@ import {
   CHAT_NAMESPACE,
   CONNECTION_EVENTS,
 } from "../../constants/socket";
-import { MessageStatusEnum, type MessageDTO } from "../../api/types";
+import {
+  MessageStatusEnum,
+  type LogInput,
+  type MessageDTO,
+} from "../../api/types";
+import { sendMetricsLogsRequest } from "../../api/requests";
 import { useStore } from "../../state/store";
 import type { ChatSocket } from "../../state/appSlice.types";
 import { selectTypingParticipants } from "../../state/chatsSlice";
@@ -19,16 +30,47 @@ import { getTypingText } from "./Chats.helpers";
 
 const TYPING_TIMEOUT = 2000;
 
-const useChatSocket = () => {
+const useChatLogs = () => {
+  const logsRef = useRef<LogInput[]>([]);
+  const chatSocket = useStore((state) => state.chatSocket);
+
+  const sendMetricsLogs = () => {
+    if (!logsRef.current.length) return;
+
+    const logOnCloseTab = {
+      message: null,
+      name: null,
+      socketId: chatSocket?.id ?? null,
+      userId: getUser()?.id ?? null,
+      event: "close_browser_tab",
+      timestamp: new Date().toISOString(),
+    };
+
+    sendMetricsLogsRequest([...logsRef.current, logOnCloseTab]);
+    logsRef.current = [];
+  };
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", sendMetricsLogs);
+
+    return () => {
+      window.removeEventListener("beforeunload", sendMetricsLogs);
+    };
+  }, []);
+
+  return { logsRef };
+};
+
+const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
   const setChatSocket = useStore((state) => state.setChatSocket);
 
   useEffect(() => {
     const chatSocket: ChatSocket = io(
-      `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
+      `${import.meta.env.VITE_BASE_URL}1${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
+        reconnectionDelay: 5000,
         reconnectionDelayMax: 10000,
       },
     );
@@ -99,7 +141,14 @@ const useChatSocket = () => {
     };
 
     const onConnectError = (error: Error) => {
-      console.log("Error:", error);
+      logsRef.current.push({
+        message: error.message,
+        name: error.name,
+        socketId: chatSocket.id ?? null,
+        userId: getUser()?.id ?? null,
+        event: "connect_error",
+        timestamp: new Date().toISOString(),
+      });
     };
 
     const onStartTypingBroadcast = ({
@@ -404,7 +453,8 @@ const useChatsTypingText = () => {
 };
 
 export const useChats = () => {
-  useChatSocket();
+  const { logsRef } = useChatLogs();
+  useChatSocket(logsRef);
   const chat = useChatsMessages();
   const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);
