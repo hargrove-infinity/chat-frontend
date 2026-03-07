@@ -66,7 +66,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
 
   useEffect(() => {
     const chatSocket: ChatSocket = io(
-      `${import.meta.env.VITE_BASE_URL}1${CHAT_NAMESPACE}`,
+      `${import.meta.env.VITE_BASE_URL}${CHAT_NAMESPACE}`,
       {
         auth: { token: getToken() },
         reconnectionAttempts: Infinity,
