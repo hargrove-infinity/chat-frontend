@@ -1,12 +1,6 @@
 import { api } from "./api";
-import { LOGIN, CHATS, MESSAGES, METRICS_LOGS } from "./endpoints";
-import type {
-  ApiPromise,
-  AuthCredentials,
-  Chat,
-  LogInput,
-  MessageDTO,
-} from "./types";
+import { LOGIN, CHATS, MESSAGES } from "./endpoints";
+import type { ApiPromise, AuthCredentials, Chat, MessageDTO } from "./types";
 
 // Auth
 export const loginRequest = (args: AuthCredentials): ApiPromise<string> => {
@@ -22,11 +16,4 @@ export const getMessagesByChatRequest = (
   chatId: string,
 ): ApiPromise<MessageDTO[]> => {
   return api.get(`${CHATS}/${chatId}${MESSAGES}`);
-};
-
-// Metrics
-export const sendMetricsLogsRequest = (
-  errorLogs: LogInput[],
-): ApiPromise<Record<string, never>> => {
-  return api.post(METRICS_LOGS, errorLogs);
 };

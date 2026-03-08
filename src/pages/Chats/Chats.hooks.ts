@@ -20,7 +20,7 @@ import {
   type LogInput,
   type MessageDTO,
 } from "../../api/types";
-import { sendMetricsLogsRequest } from "../../api/requests";
+import { METRICS_LOGS } from "../../api/endpoints";
 import { useStore } from "../../state/store";
 import type { ChatSocket } from "../../state/appSlice.types";
 import { selectTypingParticipants } from "../../state/chatsSlice";
@@ -34,28 +34,24 @@ const useChatLogs = () => {
   const logsRef = useRef<LogInput[]>([]);
   const chatSocket = useStore((state) => state.chatSocket);
 
-  const sendMetricsLogs = () => {
-    if (!logsRef.current.length) return;
-
-    const logOnCloseTab = {
-      message: null,
-      name: null,
-      socketId: chatSocket?.id ?? null,
-      userId: getUser()?.id ?? null,
-      event: "close_browser_tab",
-      timestamp: new Date().toISOString(),
-    };
-
-    sendMetricsLogsRequest([...logsRef.current, logOnCloseTab]);
-    logsRef.current = [];
-  };
-
   useEffect(() => {
-    window.addEventListener("beforeunload", sendMetricsLogs);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        const logOnCloseTab = {
+          message: null,
+          name: null,
+          socketId: chatSocket?.id ?? null,
+          userId: getUser()?.id ?? null,
+          event: "close_browser_tab",
+          timestamp: new Date().toISOString(),
+        };
 
-    return () => {
-      window.removeEventListener("beforeunload", sendMetricsLogs);
-    };
+        navigator.sendBeacon(
+          `${import.meta.env.VITE_BASE_URL}${METRICS_LOGS}`,
+          JSON.stringify([...logsRef.current, logOnCloseTab]),
+        );
+      }
+    });
   }, []);
 
   return { logsRef };
