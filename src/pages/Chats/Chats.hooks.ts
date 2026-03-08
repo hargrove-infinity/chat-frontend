@@ -37,6 +37,8 @@ const useChatLogs = () => {
   useEffect(() => {
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
+        if (!logsRef.current.length) return;
+
         const logOnCloseTab = {
           message: null,
           name: null,
