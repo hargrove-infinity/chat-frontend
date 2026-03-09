@@ -1,6 +1,8 @@
 import type { AxiosPromise, AxiosError, AxiosResponse } from "axios";
 
-// Axios
+/**
+ * AXIOS
+ */
 interface ApiResponsePayload<T> {
   payload: T;
 }
@@ -15,13 +17,17 @@ export type ApiError = AxiosError<ApiErrorPayload> & {
   response: AxiosResponse<ApiErrorPayload>;
 };
 
-// Auth
+/**
+ * AUTH
+ */
 export interface AuthCredentials {
   email: string;
   password: string;
 }
 
-// Chats
+/**
+ * CHATS
+ */
 
 export type Participant = { id: string; name: string; isTyping: boolean };
 
@@ -79,4 +85,16 @@ export type MessageLocal = Omit<MessageDTO, "createdAt" | "updatedAt"> & {
   createdAt: string | null;
   /** Null for optimistic messages before server confirmation */
   updatedAt: string | null;
+};
+
+/**
+ * METRICS
+ */
+export type LogInput = {
+  socketId: string | null;
+  userId: string | null;
+  event: string;
+  message: string | null;
+  name: string | null;
+  timestamp: string;
 };
