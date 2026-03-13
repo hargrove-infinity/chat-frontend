@@ -66,8 +66,4 @@ export type ChatSocket = Socket<
   ClientToServerEventsChats
 >;
 
-type ClientToServerEventsAdmin = {
-  [CONNECTION_EVENTS.ADMIN]: (msg: string) => void;
-};
-
-export type AdminSocket = Socket<EventsMap, ClientToServerEventsAdmin>;
+export type AdminSocket = Socket<EventsMap>;
