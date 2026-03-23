@@ -45,6 +45,7 @@ export type Chat = {
   isOnline: boolean;
   createdAt: string;
   updatedAt: string;
+  unreadMessages: number;
 };
 
 /**
@@ -69,6 +70,7 @@ export type MessageDTO = {
   senderName: string | null;
   content: string;
   status: MessageStatusEnum;
+  read: boolean;
   createdAt: string;
   updatedAt: string;
 };
