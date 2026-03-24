@@ -113,7 +113,11 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (chat.id === msg.chatId) {
-            return { ...chat, lastMessage: msg.content };
+            return {
+              ...chat,
+              lastMessage: msg.content,
+              unreadMessages: chat.unreadMessages + 1,
+            };
           }
 
           return chat;
@@ -126,6 +130,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
             {
               ...msg,
               isMine: getUser()?.id === msg.senderId,
+              read: getUser()?.id === msg.senderId,
               // Messages from server are already sent successfully, no error
               error: null,
             },
@@ -238,9 +243,13 @@ const useChatsMessages = () => {
   const user = getUser();
   const socket = useStore((state) => state.chatSocket);
   const chats = useStore((state) => state.chats);
-  const messages = useStore((state) => state.messages);
+  const allMessages = useStore((state) => state.messages);
   const getChats = useStore((state) => state.getChats);
   const getMessagesByChat = useStore((state) => state.getMessagesByChat);
+
+  const messages = chatId
+    ? allMessages?.filter((msg) => msg.chatId === chatId) || []
+    : [];
 
   useEffect(() => {
     getChats();
@@ -272,6 +281,7 @@ const useChatsMessages = () => {
       content,
       status: MessageStatusEnum.SENDING,
       isMine: true,
+      read: true,
       // No error yet - message is being sent
       error: null,
       // Timestamps are null until server responds with real values
@@ -280,7 +290,16 @@ const useChatsMessages = () => {
     };
 
     useStore.setState((state) => {
+      const updatedChats = state.chats?.map((chat) => {
+        if (chat.id === chatId) {
+          return { ...chat, lastMessage: messageToSend.content };
+        }
+
+        return chat;
+      });
+
       return {
+        chats: updatedChats,
         messages: [...(state.messages || []), messageToSend],
       };
     });
@@ -296,6 +315,7 @@ const useChatsMessages = () => {
                 return {
                   ...ack.message,
                   isMine: true,
+                  read: true,
                   // Server confirmed success, clear any potential error
                   error: null,
                 };

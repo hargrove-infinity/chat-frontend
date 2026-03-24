@@ -1,4 +1,4 @@
-import { type FC } from "react";
+import { Fragment, type FC } from "react";
 import { MessageStatusEnum } from "../../api/types";
 import { formatDateTime } from "../../utils/formatDateTime";
 import { useChats } from "./Chats.hooks";
@@ -30,7 +30,14 @@ export const Chats: FC = () => {
               </div>
 
               <div className={styles.contactInfo}>
-                <div className={styles.contactName}>{chat.name}</div>
+                <div className={styles.contactHeader}>
+                  <div className={styles.contactName}>{chat.name}</div>
+                  {chat.unreadMessages > 0 && (
+                    <span className={styles.unreadBadge}>
+                      {chat.unreadMessages}
+                    </span>
+                  )}
+                </div>
                 {chat.lastMessage && (
                   <div className={styles.lastMessage}>{chat.lastMessage}</div>
                 )}
@@ -67,104 +74,123 @@ export const Chats: FC = () => {
 
       {/* Chat area */}
       <main className={styles.chat}>
-        {/* Messages */}
-        <div className={styles.messages}>
-          {hook.chat.messages.map((message) => (
-            <div
-              key={message.id}
-              className={`${styles.message} ${
-                message.isMine ? styles.myMessage : styles.theirMessage
-              } ${message.status === MessageStatusEnum.ERROR && styles.error}`}
-            >
-              {/* Sender name (optional) */}
-              {!message.isMine && message.senderName && (
-                <div className={styles.senderName}>{message.senderName}</div>
-              )}
+        {hook.chat.chatId ? (
+          <Fragment>
+            {/* Messages */}
+            <div className={styles.messages}>
+              {hook.chat.messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`${styles.message} ${
+                    message.isMine ? styles.myMessage : styles.theirMessage
+                  } ${message.status === MessageStatusEnum.ERROR && styles.error} ${
+                    !message.read && !message.isMine ? styles.unreadMessage : ""
+                  }`}
+                >
+                  {/* Sender name (optional) */}
+                  {!message.isMine && message.senderName && (
+                    <div className={styles.senderName}>
+                      {message.senderName}
+                    </div>
+                  )}
 
-              <div className={styles.messageBubble}>{message.content}</div>
+                  <div className={styles.messageBubble}>
+                    {message.content}
+                    {!message.read && !message.isMine && (
+                      <span className={styles.unreadIndicator} />
+                    )}
+                  </div>
 
-              <div className={styles.messageMeta}>
-                {message.createdAt && (
-                  <span className={styles.messageTime}>
-                    {formatDateTime(message.createdAt)}
-                  </span>
-                )}
-
-                {message.isMine && (
-                  <div className={styles.messageStatus}>
-                    {message.status === MessageStatusEnum.SENDING && (
-                      <div className={styles.sendingClock} />
+                  <div className={styles.messageMeta}>
+                    {message.createdAt && (
+                      <span className={styles.messageTime}>
+                        {formatDateTime(message.createdAt)}
+                      </span>
                     )}
 
-                    {message.status === MessageStatusEnum.SENT && (
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="14"
-                        height="14"
-                        aria-hidden="true"
-                        className={styles.checkIcon}
-                      >
-                        <polyline points="4 13 9 18 20 6" />
-                      </svg>
-                    )}
+                    {message.isMine && (
+                      <div className={styles.messageStatus}>
+                        {message.status === MessageStatusEnum.SENDING && (
+                          <div className={styles.sendingClock} />
+                        )}
 
-                    {message.status === MessageStatusEnum.ERROR && (
-                      <div className={styles.errorContainer}>
-                        <svg
-                          className={styles.errorIcon}
-                          viewBox="0 0 24 24"
-                          width="14"
-                          height="14"
-                          aria-hidden="true"
-                        >
-                          <circle cx="12" cy="12" r="11" />
-                          <line x1="12" y1="6" x2="12" y2="14" />
-                          <circle cx="12" cy="18" r="1.2" />
-                        </svg>
+                        {message.status === MessageStatusEnum.SENT && (
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            aria-hidden="true"
+                            className={styles.checkIcon}
+                          >
+                            <polyline points="4 13 9 18 20 6" />
+                          </svg>
+                        )}
 
-                        {message.error && (
-                          <span className={styles.errorText}>
-                            {message.error}
-                          </span>
+                        {message.status === MessageStatusEnum.ERROR && (
+                          <div className={styles.errorContainer}>
+                            <svg
+                              className={styles.errorIcon}
+                              viewBox="0 0 24 24"
+                              width="14"
+                              height="14"
+                              aria-hidden="true"
+                            >
+                              <circle cx="12" cy="12" r="11" />
+                              <line x1="12" y1="6" x2="12" y2="14" />
+                              <circle cx="12" cy="18" r="1.2" />
+                            </svg>
+
+                            {message.error && (
+                              <span className={styles.errorText}>
+                                {message.error}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Typing indicator */}
-        {hook.typing.typingText && (
-          <div className={styles.typingIndicator}>
-            <span className={styles.typingText}>{hook.typing.typingText}</span>
-            <span className={styles.typingDots}>
-              <span />
-              <span />
-              <span />
-            </span>
+            {/* Typing indicator */}
+            {hook.typing.typingText && (
+              <div className={styles.typingIndicator}>
+                <span className={styles.typingText}>
+                  {hook.typing.typingText}
+                </span>
+                <span className={styles.typingDots}>
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </div>
+            )}
+
+            {/* Input */}
+            <div className={styles.inputArea}>
+              <textarea
+                className={styles.textarea}
+                placeholder="Type a message..."
+                value={hook.sendMessage.inputValue}
+                onChange={(e) => hook.sendMessage.setInputValue(e.target.value)}
+                onKeyDown={hook.sendMessage.handleKeyDown}
+                onBlur={hook.sendMessage.emitStopTyping}
+              />
+              <button
+                className={styles.sendButton}
+                onClick={hook.sendMessage.handleSend}
+              >
+                Send
+              </button>
+            </div>
+          </Fragment>
+        ) : (
+          <div className={styles.emptyMessagesState}>
+            <p>Select a chat to start messaging</p>
           </div>
         )}
-
-        {/* Input */}
-        <div className={styles.inputArea}>
-          <textarea
-            className={styles.textarea}
-            placeholder="Type a message..."
-            value={hook.sendMessage.inputValue}
-            onChange={(e) => hook.sendMessage.setInputValue(e.target.value)}
-            onKeyDown={hook.sendMessage.handleKeyDown}
-            onBlur={hook.sendMessage.emitStopTyping}
-          />
-          <button
-            className={styles.sendButton}
-            onClick={hook.sendMessage.handleSend}
-          >
-            Send
-          </button>
-        </div>
       </main>
     </div>
   );
