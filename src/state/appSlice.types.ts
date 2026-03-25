@@ -57,6 +57,7 @@ type ClientToServerEventsChats = {
   ) => void;
   [CHAT_EVENTS.START_TYPING_DISPATCH]: (chatId: string) => void;
   [CHAT_EVENTS.STOP_TYPING_DISPATCH]: (chatId: string) => void;
+  [CHAT_EVENTS.MARK_AS_READ]: (messageIds: string[]) => void;
 };
 
 type TypingBroadcastPayload = { chatId: string; userId: string };
