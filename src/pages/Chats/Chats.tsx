@@ -81,9 +81,10 @@ export const Chats: FC = () => {
               {hook.chat.messages.map((message) => (
                 <div
                   key={message.id}
-                  {...(!message.isMine && {
-                    ref: hook.observer.setMessageNodeRef(message.id),
-                  })}
+                  {...(!message.isMine &&
+                    !message.read && {
+                      ref: hook.observer.setMessageNodeRef(message.id),
+                    })}
                   data-message-id={message.id}
                   className={`${styles.message} ${
                     message.isMine ? styles.myMessage : styles.theirMessage
