@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -19,6 +20,7 @@ import {
   MessageStatusEnum,
   type LogInput,
   type MessageDTO,
+  type MessageLocal,
 } from "../../api/types";
 import { METRICS_LOGS } from "../../api/endpoints";
 import { useStore } from "../../state/store";
@@ -29,6 +31,7 @@ import { getUser } from "../../utils/getUser";
 import { getTypingText } from "./Chats.helpers";
 
 const TYPING_TIMEOUT = 2000;
+const MARK_AS_READ_TIMEOUT = 1500;
 
 const useChatLogs = () => {
   const logsRef = useRef<LogInput[]>([]);
@@ -470,6 +473,131 @@ const useChatsTypingText = () => {
   return { typingText };
 };
 
+const useChatMessageObserver = (messages: MessageLocal[]) => {
+  const { chatId } = useParams();
+
+  const socket = useStore((state) => state.chatSocket);
+
+  const messageNodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const messageIdsToMarkAsRead = useRef<Set<string>>(new Set());
+  const markAsReadIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+
+  const setMessageNodeRef = useCallback(
+    (id: string) => (el: HTMLDivElement | null) => {
+      if (el) {
+        messageNodeRefs.current.set(id, el);
+      } else {
+        messageNodeRefs.current.delete(id);
+      }
+    },
+    [],
+  );
+
+  const handleIntersections = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        const messageId = (entry.target as HTMLDivElement).dataset.messageId;
+        if (!messageId) return;
+
+        if (entry.isIntersecting) {
+          messageIdsToMarkAsRead.current.add(messageId);
+        } else {
+          messageIdsToMarkAsRead.current.delete(messageId);
+        }
+      });
+    },
+    [],
+  );
+
+  const handleMarkAsRead = useCallback(() => {
+    if (!messageIdsToMarkAsRead.current.size) return;
+
+    const messageIds = [...messageIdsToMarkAsRead.current];
+    messageIdsToMarkAsRead.current.clear();
+
+    const messageIdsSet = new Set(messageIds);
+
+    useStore.setState((state) => {
+      if (!state.messages?.length) return state;
+
+      const hasUnreadToUpdate = state.messages.some(
+        (msg) => messageIdsSet.has(msg.id) && !msg.read,
+      );
+
+      if (!hasUnreadToUpdate) return state;
+
+      const updatedMessages = state.messages.map((msg) => {
+        if (messageIdsSet.has(msg.id) && !msg.read) {
+          return { ...msg, read: true };
+        }
+        return msg;
+      });
+
+      const messageToMarkAsRead = state.messages.filter((msg) =>
+        messageIdsSet.has(msg.id),
+      );
+
+      const chatUnreadMessagesCounterMap = messageToMarkAsRead.reduce(
+        (acc: Record<string, number>, itm) => {
+          acc[itm.chatId] = (acc[itm.chatId] || 0) + 1;
+          return acc;
+        },
+        {},
+      );
+
+      const updatedChats = state.chats?.map((chat) => ({
+        ...chat,
+        unreadMessages: Math.max(
+          chat.unreadMessages - (chatUnreadMessagesCounterMap[chat.id] ?? 0),
+          0,
+        ),
+      }));
+
+      return {
+        messages: updatedMessages,
+        chats: updatedChats || [],
+      };
+    });
+
+    socket?.emit(CHAT_EVENTS.MARK_AS_READ, messageIds);
+  }, [socket]);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(handleIntersections, {
+      threshold: 1,
+    });
+
+    markAsReadIntervalRef.current = setInterval(
+      handleMarkAsRead,
+      MARK_AS_READ_TIMEOUT,
+    );
+
+    return () => {
+      observerRef.current?.disconnect();
+
+      if (markAsReadIntervalRef.current) {
+        clearInterval(markAsReadIntervalRef.current);
+      }
+    };
+  }, [handleIntersections, socket, chatId]);
+
+  useEffect(() => {
+    const observer = observerRef.current;
+    if (!observer) return;
+
+    messageNodeRefs.current.forEach((el) => observer.observe(el));
+
+    return () => {
+      messageNodeRefs.current.forEach((el) => observer.unobserve(el));
+    };
+  }, [messages]);
+
+  return { setMessageNodeRef };
+};
+
 export const useChats = () => {
   const { logsRef } = useChatLogs();
   useChatSocket(logsRef);
@@ -479,6 +607,7 @@ export const useChats = () => {
   const profile = useChatUser();
   const auth = useChatLogout();
   const typing = useChatsTypingText();
+  const observer = useChatMessageObserver(chat.messages);
 
   return {
     auth,
@@ -487,5 +616,6 @@ export const useChats = () => {
     navigation,
     sendMessage,
     typing,
+    observer,
   };
 };
