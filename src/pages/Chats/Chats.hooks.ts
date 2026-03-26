@@ -25,7 +25,10 @@ import {
 import { METRICS_LOGS } from "../../api/endpoints";
 import { useStore } from "../../state/store";
 import type { ChatSocket } from "../../state/appSlice.types";
-import { selectTypingParticipants } from "../../state/chatsSlice";
+import {
+  selectChatsView,
+  selectTypingParticipants,
+} from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
 import { getUser } from "../../utils/getUser";
 import { getTypingText } from "./Chats.helpers";
@@ -245,7 +248,8 @@ const useChatsMessages = () => {
   const { chatId } = useParams();
   const user = getUser();
   const socket = useStore((state) => state.chatSocket);
-  const chats = useStore((state) => state.chats);
+  const chats = useStore(useShallow(selectChatsView));
+
   const allMessages = useStore((state) => state.messages);
   const getChats = useStore((state) => state.getChats);
   const getMessagesByChat = useStore((state) => state.getMessagesByChat);
@@ -431,30 +435,19 @@ const useChatSendMessage = (sendMessage: (content: string) => void) => {
 const useChatsNavigation = () => {
   const navigate = useNavigate();
 
-  const onContactClick = (id: string): void => {
+  const onContactClick = (id: string) => () => {
     navigate(`${CHATS}/${id}`);
   };
 
   return { onContactClick };
 };
 
-const useChatUser = () => {
+const useChatUserProfile = () => {
   const user = getUser();
 
-  const getUserInitials = () => {
-    if (!user) return "?";
-    const first = user.firstName.charAt(0).toUpperCase();
-    const last = user.lastName.charAt(0).toUpperCase();
-    return `${first}${last}`;
-  };
-
-  return { user, userInitials: getUserInitials() };
-};
-
-const useChatLogout = () => {
   const logout = useStore((state) => state.logout);
 
-  return { logout };
+  return { user, logout };
 };
 
 const useChatsTypingText = () => {
@@ -604,13 +597,11 @@ export const useChats = () => {
   const chat = useChatsMessages();
   const navigation = useChatsNavigation();
   const sendMessage = useChatSendMessage(chat.sendMessage);
-  const profile = useChatUser();
-  const auth = useChatLogout();
+  const profile = useChatUserProfile();
   const typing = useChatsTypingText();
   const observer = useChatMessageObserver(chat.messages);
 
   return {
-    auth,
     chat,
     profile,
     navigation,

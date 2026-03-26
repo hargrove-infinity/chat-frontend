@@ -76,6 +76,17 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
   },
 });
 
+const getChatInitials = (name: string | null): string => {
+  if (!name) return "";
+
+  return name
+    .split(" ")
+    .filter((word) => /^[a-zA-Z]/.test(word))
+    .map((word) => word[0].toUpperCase())
+    .slice(0, 2)
+    .join("");
+};
+
 // Selector for typing participants
 export const selectTypingParticipants = (
   state: ChatsSlice,
@@ -92,3 +103,30 @@ export const selectTypingParticipants = (
     ) ?? []
   );
 };
+
+/**
+ * Selector that transforms chats into UI-ready view data.
+ * - Adds `chatInitials` derived from chat name
+ * - Normalizes `lastMessage` (fallback if null)
+ */
+export const selectChatsView = (() => {
+  let lastChats: ChatsSlice["chats"] | undefined;
+  let lastResult: (Chat & { chatInitials: string })[] = [];
+
+  return (state: ChatsSlice) => {
+    if (state.chats === lastChats) {
+      return lastResult;
+    }
+
+    lastChats = state.chats;
+
+    lastResult =
+      state.chats?.map((chat) => ({
+        ...chat,
+        lastMessage: chat.lastMessage || "No message yet",
+        chatInitials: getChatInitials(chat.name),
+      })) || [];
+
+    return lastResult;
+  };
+})();

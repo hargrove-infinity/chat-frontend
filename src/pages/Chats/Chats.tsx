@@ -22,10 +22,10 @@ export const Chats: FC = () => {
               className={`${styles.contactItem} ${
                 hook.chat.chatId === chat.id ? styles.contactItemActive : ""
               }`}
-              onClick={() => hook.navigation.onContactClick(chat.id)}
+              onClick={hook.navigation.onContactClick(chat.id)}
             >
               <div className={styles.avatarWrapper}>
-                <div className={styles.avatar} />
+                <div className={styles.avatar}>{chat.chatInitials}</div>
                 {chat.isOnline && <span className={styles.onlineBadge} />}
               </div>
 
@@ -51,7 +51,22 @@ export const Chats: FC = () => {
           {hook.profile.user && (
             <div className={styles.userInfo}>
               <div className={styles.userAvatar}>
-                {hook.profile.userInitials}
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  {/* Head */}
+                  <circle cx="12" cy="8" r="4" />
+                  {/* Body */}
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
               </div>
               <div className={styles.userDetails}>
                 <div className={styles.userName}>
@@ -65,7 +80,10 @@ export const Chats: FC = () => {
           )}
 
           <div className={styles.logoutWrapper}>
-            <button className={styles.logoutButton} onClick={hook.auth.logout}>
+            <button
+              className={styles.logoutButton}
+              onClick={hook.profile.logout}
+            >
               Logout
             </button>
           </div>
