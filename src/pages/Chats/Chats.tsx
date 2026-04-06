@@ -96,85 +96,185 @@ export const Chats: FC = () => {
           <Fragment>
             {/* Messages */}
             <div className={styles.messages}>
-              {hook.chat.messages.map((message) => (
-                <div
-                  key={message.id}
-                  {...(!message.isMine &&
-                    !message.read && {
+              {hook.chat.messages.map((message) => {
+                const isMessageUnread = message.reads.find(
+                  (msgRead) =>
+                    msgRead.userId === hook.profile.user?.id && !msgRead.read,
+                );
+
+                const isNotMineUnreadMessage =
+                  !message.isMine && isMessageUnread;
+
+                const readCount = message.reads.filter((r) => r.read).length;
+                const totalReaders = message.reads.length;
+
+                return (
+                  <div
+                    key={message.id}
+                    {...(isNotMineUnreadMessage && {
                       ref: hook.observer.setMessageNodeRef(message.id),
                     })}
-                  data-message-id={message.id}
-                  className={`${styles.message} ${
-                    message.isMine ? styles.myMessage : styles.theirMessage
-                  } ${message.status === MessageStatusEnum.ERROR && styles.error} ${
-                    !message.read && !message.isMine ? styles.unreadMessage : ""
-                  }`}
-                >
-                  {/* Sender name (optional) */}
-                  {!message.isMine && message.senderName && (
-                    <div className={styles.senderName}>
-                      {message.senderName}
+                    data-message-id={message.id}
+                    className={`${styles.message} ${
+                      message.isMine ? styles.myMessage : styles.theirMessage
+                    } ${message.status === MessageStatusEnum.ERROR && styles.error} ${
+                      isMessageUnread ? styles.unreadMessage : ""
+                    }`}
+                  >
+                    {/* Sender name (for incoming messages) */}
+                    {!message.isMine && message.senderName && (
+                      <div className={styles.senderName}>
+                        {message.senderName}
+                      </div>
+                    )}
+
+                    <div className={styles.messageBubble}>
+                      {message.content}
+                      {isNotMineUnreadMessage && (
+                        <span className={styles.unreadIndicator} />
+                      )}
                     </div>
-                  )}
 
-                  <div className={styles.messageBubble}>
-                    {message.content}
-                    {!message.read && !message.isMine && (
-                      <span className={styles.unreadIndicator} />
-                    )}
-                  </div>
+                    {/* Read Receipt Menu - only for own messages in group chats */}
+                    {message.isMine && hook.readReceiptMenu.isGroupChat && (
+                      <div className={styles.readReceipt}>
+                        <button
+                          type="button"
+                          data-read-button={message.id}
+                          className={styles.readReceiptButton}
+                          onClick={hook.readReceiptMenu.toggleReadMenu(
+                            message.id,
+                          )}
+                          aria-label={`Read by ${readCount} of ${totalReaders}`}
+                        >
+                          <span className={styles.readCount}>Seen</span>
+                        </button>
 
-                  <div className={styles.messageMeta}>
-                    {message.createdAt && (
-                      <span className={styles.messageTime}>
-                        {formatDateTime(message.createdAt)}
-                      </span>
-                    )}
-
-                    {message.isMine && (
-                      <div className={styles.messageStatus}>
-                        {message.status === MessageStatusEnum.SENDING && (
-                          <div className={styles.sendingClock} />
-                        )}
-
-                        {message.status === MessageStatusEnum.SENT && (
-                          <svg
-                            viewBox="0 0 24 24"
-                            width="14"
-                            height="14"
-                            aria-hidden="true"
-                            className={styles.checkIcon}
+                        {/* Menu for group chat */}
+                        {hook.readReceiptMenu.openReadMenuMessageId ===
+                          message.id && (
+                          <div
+                            className={styles.readMenu}
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <polyline points="4 13 9 18 20 6" />
-                          </svg>
-                        )}
-
-                        {message.status === MessageStatusEnum.ERROR && (
-                          <div className={styles.errorContainer}>
-                            <svg
-                              className={styles.errorIcon}
-                              viewBox="0 0 24 24"
-                              width="14"
-                              height="14"
-                              aria-hidden="true"
-                            >
-                              <circle cx="12" cy="12" r="11" />
-                              <line x1="12" y1="6" x2="12" y2="14" />
-                              <circle cx="12" cy="18" r="1.2" />
-                            </svg>
-
-                            {message.error && (
-                              <span className={styles.errorText}>
-                                {message.error}
-                              </span>
-                            )}
+                            <div className={styles.readMenuHeader}>
+                              Read by {readCount} of {totalReaders}
+                            </div>
+                            {message.reads.map((readInfo) => (
+                              <div
+                                key={readInfo.userId}
+                                className={styles.readMenuItem}
+                              >
+                                <span className={styles.readMenuName}>
+                                  {readInfo.userName}
+                                </span>
+                                {readInfo.read ? (
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 16 16"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <g transform="translate(-1 -1) scale(1.15)">
+                                      <path
+                                        d="M3 6 L8 3 L13 6 M3 6 V12 H13 V6 M3 6 L8 10 L13 6"
+                                        fill="none"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className={styles.readEnvelopeIcon}
+                                      />
+                                    </g>
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 16 16"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M1.5 4.5 H14.5 V12.5 H1.5 Z M1.5 4.5 L8 10 L14.5 4.5"
+                                      fill="none"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className={styles.readEnvelopeIcon}
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
                     )}
+
+                    <div className={styles.messageMeta}>
+                      {message.createdAt && (
+                        <span className={styles.messageTime}>
+                          {formatDateTime(message.createdAt)}
+                        </span>
+                      )}
+
+                      {/* Original sending / error status (kept unchanged) */}
+                      {message.isMine && (
+                        <div className={styles.messageStatus}>
+                          {message.status === MessageStatusEnum.SENDING && (
+                            <div className={styles.sendingClock} />
+                          )}
+
+                          {message.status === MessageStatusEnum.SENT && (
+                            <svg
+                              viewBox="0 0 24 24"
+                              width="14"
+                              height="14"
+                              aria-hidden="true"
+                              className={styles.checkIcon}
+                            >
+                              <polyline points="4 13 9 18 20 6" />
+                            </svg>
+                          )}
+
+                          {message.status === MessageStatusEnum.READ && (
+                            <svg
+                              viewBox="0 0 24 24"
+                              width="14"
+                              height="14"
+                              aria-hidden="true"
+                              className={styles.readEyeIcon}
+                            >
+                              <path d="M12 9a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 1.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM12 5.5c4.6 0 8.5 3.1 9.7 7.4.1.4-.1.8-.5.9-.4.1-.8-.1-.9-.5C19.3 9.7 16 7 12 7s-7.3 2.7-8.3 6.3c-.1.4-.5.6-.9.5-.4-.1-.6-.5-.5-.9C3.5 8.6 7.4 5.5 12 5.5z" />
+                            </svg>
+                          )}
+
+                          {message.status === MessageStatusEnum.ERROR && (
+                            <div className={styles.errorContainer}>
+                              <svg
+                                className={styles.errorIcon}
+                                viewBox="0 0 24 24"
+                                width="14"
+                                height="14"
+                                aria-hidden="true"
+                              >
+                                <circle cx="12" cy="12" r="11" />
+                                <line x1="12" y1="6" x2="12" y2="14" />
+                                <circle cx="12" cy="18" r="1.2" />
+                              </svg>
+
+                              {message.error && (
+                                <span className={styles.errorText}>
+                                  {message.error}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Typing indicator */}

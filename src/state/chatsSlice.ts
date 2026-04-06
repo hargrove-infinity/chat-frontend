@@ -130,3 +130,15 @@ export const selectChatsView = (() => {
     return lastResult;
   };
 })();
+
+/**
+ * Returns the boolean whether is current chat type is group.
+ * Returns null if no chat is selected.
+ */
+export const selectIsCurrentChatGroup = (
+  state: ChatsSlice,
+  chatId: string | undefined,
+) => {
+  if (!chatId) return null;
+  return state.chats?.find((chat) => chat.id === chatId)?.type === "group";
+};

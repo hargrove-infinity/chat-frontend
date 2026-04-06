@@ -56,9 +56,13 @@ export enum MessageStatusEnum {
   SENDING = "SENDING",
   /** Message successfully delivered to server */
   SENT = "SENT",
+  /** Message read by all participants in a chat */
+  READ = "READ",
   /** Message failed to send */
   ERROR = "ERROR",
 }
+
+type MessageReads = { userId: string; userName: string; read: boolean };
 
 /**
  * Message received from server (matches backend MessageDTO)
@@ -70,7 +74,7 @@ export type MessageDTO = {
   senderName: string | null;
   content: string;
   status: MessageStatusEnum;
-  read: boolean;
+  reads: MessageReads[];
   createdAt: string;
   updatedAt: string;
 };
