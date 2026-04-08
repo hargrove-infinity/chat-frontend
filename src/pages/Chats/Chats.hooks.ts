@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type RefObject,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -24,9 +25,13 @@ import {
 } from "../../api/types";
 import { METRICS_LOGS } from "../../api/endpoints";
 import { useStore } from "../../state/store";
-import type { ChatSocket } from "../../state/appSlice.types";
+import type {
+  ChatSocket,
+  ReadReceiptPayload,
+} from "../../state/appSlice.types";
 import {
   selectChatsView,
+  selectIsCurrentChatGroup,
   selectTypingParticipants,
 } from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
@@ -145,6 +150,43 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       });
     };
 
+    const onNotifyAuthorMessageWasRead = (payload: ReadReceiptPayload) => {
+      const { readerId, messageIds } = payload;
+
+      useStore.setState((state) => {
+        const updatedMessages = state.messages?.map((message) => {
+          if (messageIds.includes(message.id)) {
+            const updatedMessageReads = message.reads.map((msgRead) => {
+              if (msgRead.userId === readerId) {
+                return {
+                  ...msgRead,
+                  read: true,
+                };
+              }
+
+              return msgRead;
+            });
+
+            const isReadMessage = updatedMessageReads.every(
+              (readEvent) => readEvent.read,
+            );
+
+            return {
+              ...message,
+              reads: updatedMessageReads,
+              status: isReadMessage ? MessageStatusEnum.READ : message.status,
+            };
+          }
+
+          return message;
+        });
+
+        return {
+          messages: updatedMessages,
+        };
+      });
+    };
+
     const onDisconnect = (reason: Socket.DisconnectReason): void => {
       console.log("Reason of disconnect:", reason);
     };
@@ -223,6 +265,10 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
+    chatSocket.on(
+      CHAT_EVENTS.NOTIFY_AUTHOR_MESSAGE_WAS_READ,
+      onNotifyAuthorMessageWasRead,
+    );
     chatSocket.on(CHAT_EVENTS.START_TYPING_BROADCAST, onStartTypingBroadcast);
     chatSocket.on(CHAT_EVENTS.STOP_TYPING_BROADCAST, onStopTypingBroadcast);
     chatSocket.on("connect_error", onConnectError);
@@ -232,6 +278,10 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
+      chatSocket.off(
+        CHAT_EVENTS.NOTIFY_AUTHOR_MESSAGE_WAS_READ,
+        onNotifyAuthorMessageWasRead,
+      );
       chatSocket.off(
         CHAT_EVENTS.START_TYPING_BROADCAST,
         onStartTypingBroadcast,
@@ -288,7 +338,7 @@ const useChatsMessages = () => {
       content,
       status: MessageStatusEnum.SENDING,
       isMine: true,
-      read: true,
+      reads: [],
       // No error yet - message is being sent
       error: null,
       // Timestamps are null until server responds with real values
@@ -322,7 +372,6 @@ const useChatsMessages = () => {
                 return {
                   ...ack.message,
                   isMine: true,
-                  read: true,
                   // Server confirmed success, clear any potential error
                   error: null,
                 };
@@ -467,7 +516,7 @@ const useChatsTypingText = () => {
 };
 
 const useChatMessageObserver = (messages: MessageLocal[]) => {
-  const { chatId } = useParams();
+  const userId = getUser()?.id;
 
   const socket = useStore((state) => state.chatSocket);
 
@@ -506,6 +555,8 @@ const useChatMessageObserver = (messages: MessageLocal[]) => {
   );
 
   const handleMarkAsRead = useCallback(() => {
+    if (!userId) return;
+
     if (!messageIdsToMarkAsRead.current.size) return;
 
     const messageIds = [...messageIdsToMarkAsRead.current];
@@ -517,14 +568,28 @@ const useChatMessageObserver = (messages: MessageLocal[]) => {
       if (!state.messages?.length) return state;
 
       const hasUnreadToUpdate = state.messages.some(
-        (msg) => messageIdsSet.has(msg.id) && !msg.read,
+        (msg) =>
+          messageIdsSet.has(msg.id) &&
+          msg.reads.some(
+            (msgRead) => msgRead.userId === userId && !msgRead.read,
+          ),
       );
 
       if (!hasUnreadToUpdate) return state;
 
       const updatedMessages = state.messages.map((msg) => {
-        if (messageIdsSet.has(msg.id) && !msg.read) {
-          return { ...msg, read: true };
+        if (
+          messageIdsSet.has(msg.id) &&
+          msg.reads.some(
+            (msgRead) => msgRead.userId === userId && !msgRead.read,
+          )
+        ) {
+          return {
+            ...msg,
+            reads: msg.reads.map((msgRead) =>
+              msgRead.userId === userId ? { ...msgRead, read: true } : msgRead,
+            ),
+          };
         }
         return msg;
       });
@@ -555,8 +620,11 @@ const useChatMessageObserver = (messages: MessageLocal[]) => {
       };
     });
 
-    socket?.emit(CHAT_EVENTS.MARK_AS_READ, messageIds);
-  }, [socket]);
+    socket?.emit(CHAT_EVENTS.MESSAGE_WAS_READ, {
+      readerId: userId,
+      messageIds,
+    });
+  }, [socket, userId]);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(handleIntersections, {
@@ -575,7 +643,7 @@ const useChatMessageObserver = (messages: MessageLocal[]) => {
         clearInterval(markAsReadIntervalRef.current);
       }
     };
-  }, [handleIntersections, socket, chatId]);
+  }, [handleIntersections, socket]);
 
   useEffect(() => {
     const observer = observerRef.current;
@@ -591,6 +659,58 @@ const useChatMessageObserver = (messages: MessageLocal[]) => {
   return { setMessageNodeRef };
 };
 
+const useGroupChatReadReceiptMenu = () => {
+  const [openReadMenuMessageId, setOpenReadMenuMessageId] = useState<
+    string | null
+  >(null);
+
+  const { chatId } = useParams();
+
+  const isGroupChat = useStore(
+    useShallow((state) => selectIsCurrentChatGroup(state, chatId)),
+  );
+
+  const toggleReadMenu =
+    (messageId: string) =>
+    (event: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
+      event.stopPropagation();
+      setOpenReadMenuMessageId((prev) =>
+        prev === messageId ? null : messageId,
+      );
+    };
+
+  // Close menu when clicking anywhere outside (standard popover behavior)
+  useEffect(() => {
+    if (!openReadMenuMessageId) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      const isClickOnReadButton = target.closest(
+        `[data-read-button="${openReadMenuMessageId}"]`,
+      );
+
+      if (isClickOnReadButton) {
+        return;
+      }
+
+      setOpenReadMenuMessageId(null);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openReadMenuMessageId]);
+
+  return {
+    isGroupChat,
+    openReadMenuMessageId,
+    toggleReadMenu,
+  };
+};
+
 export const useChats = () => {
   const { logsRef } = useChatLogs();
   useChatSocket(logsRef);
@@ -600,6 +720,7 @@ export const useChats = () => {
   const profile = useChatUserProfile();
   const typing = useChatsTypingText();
   const observer = useChatMessageObserver(chat.messages);
+  const readReceiptMenu = useGroupChatReadReceiptMenu();
 
   return {
     chat,
@@ -608,5 +729,6 @@ export const useChats = () => {
     sendMessage,
     typing,
     observer,
+    readReceiptMenu,
   };
 };
