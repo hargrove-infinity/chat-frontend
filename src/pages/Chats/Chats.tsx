@@ -210,7 +210,13 @@ export const Chats: FC = () => {
                       </div>
                     )}
 
-                    <div className={styles.messageMeta}>
+                    <div
+                      className={`${styles.messageMeta} ${
+                        message.isMine
+                          ? styles.messageMetaMine
+                          : styles.messageMetaOthers
+                      }`}
+                    >
                       {message.createdAt && (
                         <span className={styles.messageTime}>
                           {formatDateTime(message.createdAt)}

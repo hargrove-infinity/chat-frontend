@@ -194,12 +194,19 @@
 
 .messageMeta {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 6px;
   margin-top: 4px;
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+.messageMetaMine {
+  justify-content: flex-end;
+}
+
+.messageMetaOthers {
+  justify-content: flex-start;
 }
 
 .messageStatus {
