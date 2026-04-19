@@ -90,7 +90,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (
-            chat.type === "direct" &&
+            chat.type === "DIRECT" &&
             chat.participants.find((p) => p.id === onlineInterlocutorId)
           ) {
             return { ...chat, isOnline: true };
@@ -107,7 +107,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       useStore.setState((state) => {
         const updatedChats = state.chats?.map((chat) => {
           if (
-            chat.type === "direct" &&
+            chat.type === "DIRECT" &&
             chat.participants.find((p) => p.id === offlineInterlocutorId)
           ) {
             return { ...chat, isOnline: false };

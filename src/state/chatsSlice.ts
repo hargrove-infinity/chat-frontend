@@ -140,5 +140,5 @@ export const selectIsCurrentChatGroup = (
   chatId: string | undefined,
 ) => {
   if (!chatId) return null;
-  return state.chats?.find((chat) => chat.id === chatId)?.type === "group";
+  return state.chats?.find((chat) => chat.id === chatId)?.type === "GROUP";
 };
