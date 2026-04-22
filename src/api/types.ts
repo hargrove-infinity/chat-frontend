@@ -37,7 +37,7 @@ export type Participant = { id: string; name: string; isTyping: boolean };
  */
 export type Chat = {
   id: string;
-  type: "direct" | "group";
+  type: "DIRECT" | "GROUP";
   /** Resolved chat name (participant's name for direct, stored name for group) */
   name: string | null;
   participants: Participant[];
