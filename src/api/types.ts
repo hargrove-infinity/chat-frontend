@@ -70,7 +70,7 @@ type MessageReads = { userId: string; userName: string; read: boolean };
 export type MessageDTO = {
   id: string;
   chatId: string;
-  senderId: string;
+  userId: string;
   senderName: string | null;
   content: string;
   status: MessageStatusEnum;

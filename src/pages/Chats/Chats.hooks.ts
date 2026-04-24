@@ -140,8 +140,8 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
             ...(state.messages || []),
             {
               ...msg,
-              isMine: getUser()?.id === msg.senderId,
-              read: getUser()?.id === msg.senderId,
+              isMine: getUser()?.id === msg.userId,
+              read: getUser()?.id === msg.userId,
               // Messages from server are already sent successfully, no error
               error: null,
             },
@@ -333,7 +333,7 @@ const useChatsMessages = () => {
     const messageToSend = {
       id: tempId,
       chatId,
-      senderId: user.id,
+      userId: user.id,
       senderName: `${user.firstName} ${user.lastName}`,
       content,
       status: MessageStatusEnum.SENDING,
