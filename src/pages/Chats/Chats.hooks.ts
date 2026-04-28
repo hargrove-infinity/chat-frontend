@@ -50,12 +50,14 @@ const useChatLogs = () => {
       if (document.visibilityState === "hidden") {
         if (!logsRef.current.length) return;
 
-        const logOnCloseTab = {
+        const logOnCloseTab: LogInput = {
           message: null,
           name: null,
           socketId: chatSocket?.id ?? null,
           userId: getUser()?.id ?? null,
           event: "close_browser_tab",
+          namespace: CHAT_NAMESPACE,
+          source: "frontend",
           timestamp: new Date().toISOString(),
         };
 
@@ -198,6 +200,8 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
         socketId: chatSocket.id ?? null,
         userId: getUser()?.id ?? null,
         event: "connect_error",
+        namespace: CHAT_NAMESPACE,
+        source: "frontend",
         timestamp: new Date().toISOString(),
       });
     };

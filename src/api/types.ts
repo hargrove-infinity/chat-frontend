@@ -102,5 +102,7 @@ export type LogInput = {
   event: string;
   message: string | null;
   name: string | null;
+  namespace: string;
+  source: string;
   timestamp: string;
 };
