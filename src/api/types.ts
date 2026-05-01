@@ -97,12 +97,13 @@ export type MessageLocal = Omit<MessageDTO, "createdAt" | "updatedAt"> & {
  * METRICS
  */
 export type LogInput = {
-  socketId: string | null;
-  userId: string | null;
   event: string;
-  message: string | null;
-  name: string | null;
-  namespace: string;
-  source: string;
-  timestamp: string;
+  id?: string | undefined;
+  name?: string | null | undefined;
+  socketId?: string | null | undefined;
+  userId?: string | null | undefined;
+  message?: string | null | undefined;
+  namespace?: string | null | undefined;
+  source?: string | null | undefined;
+  timestamp?: Date | undefined;
 };
