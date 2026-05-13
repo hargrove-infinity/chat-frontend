@@ -58,7 +58,7 @@ const useChatLogs = () => {
           event: "close_browser_tab",
           namespace: CHAT_NAMESPACE,
           source: "frontend",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(),
         };
 
         navigator.sendBeacon(
@@ -202,7 +202,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
         event: "connect_error",
         namespace: CHAT_NAMESPACE,
         source: "frontend",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       });
     };
 
