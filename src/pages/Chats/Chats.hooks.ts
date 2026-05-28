@@ -81,12 +81,16 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       {
         auth: { token: getToken() },
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 5000,
-        reconnectionDelayMax: 10000,
+        reconnectionDelay: 0,
+        reconnectionDelayMax: 0,
       },
     );
 
     setChatSocket(chatSocket);
+
+    const onConnect = () => {
+      console.log("new socket id:", chatSocket.id);
+    };
 
     const onOnline = (onlineInterlocutorId: string): void => {
       useStore.setState((state) => {
@@ -266,6 +270,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       });
     };
 
+    chatSocket.on("connect", onConnect);
     chatSocket.on(CONNECTION_EVENTS.ONLINE, onOnline);
     chatSocket.on(CONNECTION_EVENTS.OFFLINE, onOffline);
     chatSocket.on(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
@@ -279,6 +284,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
     chatSocket.on("disconnect", onDisconnect);
 
     return () => {
+      chatSocket.off("connect", onConnect);
       chatSocket.off(CONNECTION_EVENTS.ONLINE, onOnline);
       chatSocket.off(CONNECTION_EVENTS.OFFLINE, onOffline);
       chatSocket.off(CHAT_EVENTS.NEW_MESSAGE, onChatNewMessage);
