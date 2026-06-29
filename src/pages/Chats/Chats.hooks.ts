@@ -73,7 +73,14 @@ const useChatLogs = () => {
 };
 
 const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
+  const { chatId } = useParams();
+  const chatIdRef = useRef(chatId);
+
   const setChatSocket = useStore((state) => state.setChatSocket);
+
+  useEffect(() => {
+    chatIdRef.current = chatId;
+  }, [chatId]);
 
   useEffect(() => {
     const chatSocket: ChatSocket = io(
@@ -136,18 +143,24 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
           return chat;
         });
 
+        const newMessage = {
+          ...msg,
+          isMine: getUser()?.id === msg.userId,
+          read: getUser()?.id === msg.userId,
+          // Messages from server are already sent successfully, no error
+          error: null,
+        };
+
         return {
           chats: updatedChats,
-          messages: [
-            ...(state.messages || []),
-            {
-              ...msg,
-              isMine: getUser()?.id === msg.userId,
-              read: getUser()?.id === msg.userId,
-              // Messages from server are already sent successfully, no error
-              error: null,
-            },
-          ],
+          messages:
+            // Only append the new message to the store if the user is currently
+            // viewing this chat. Otherwise we'd mix messages from different chats
+            // into state.messages, since getMessagesByChat fetches the correct
+            // messages fresh when the user navigates to that chat.
+            chatIdRef.current === msg.chatId
+              ? [...(state.messages || []), newMessage]
+              : state.messages,
         };
       });
     };
