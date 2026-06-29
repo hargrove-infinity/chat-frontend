@@ -155,10 +155,11 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
           chats: updatedChats,
           messages:
             // Only append the new message to the store if the user is currently
-            // viewing this chat. Otherwise we'd mix messages from different chats
-            // into state.messages, since getMessagesByChat fetches the correct
-            // messages fresh when the user navigates to that chat.
-            chatIdRef.current === msg.chatId
+            // viewing this chat and messages have finished loading. Otherwise we'd
+            // either mix messages from different chats into state.messages, or
+            // insert the new message before the initial fetch completes — causing
+            // duplicates once getMessagesByChat resolves.
+            chatIdRef.current === msg.chatId && !state.loadingGetMessagesByChat
               ? [...(state.messages || []), newMessage]
               : state.messages,
         };
