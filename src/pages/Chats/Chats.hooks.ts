@@ -63,7 +63,10 @@ const useChatLogs = () => {
 
         navigator.sendBeacon(
           `${import.meta.env.VITE_BASE_URL}${METRICS_LOGS}`,
-          JSON.stringify([...logsRef.current, logOnCloseTab]),
+          JSON.stringify({
+            logs: [...logsRef.current, logOnCloseTab],
+            token: getToken(),
+          }),
         );
       }
     });
