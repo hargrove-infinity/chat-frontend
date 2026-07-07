@@ -46,30 +46,37 @@ const useChatLogs = () => {
   const chatSocket = useStore((state) => state.chatSocket);
 
   useEffect(() => {
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") {
-        if (!logsRef.current.length) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "hidden") return;
+      if (!logsRef.current.length) return;
 
-        const logOnCloseTab: LogInput = {
-          message: null,
-          name: null,
-          socketId: chatSocket?.id ?? null,
-          userId: getUser()?.id ?? null,
-          event: "close_browser_tab",
-          namespace: CHAT_NAMESPACE,
-          source: "frontend",
-          timestamp: new Date(),
-        };
+      const logOnCloseTab: LogInput = {
+        message: null,
+        name: null,
+        socketId: chatSocket?.id ?? null,
+        userId: getUser()?.id ?? null,
+        event: "close_browser_tab",
+        namespace: CHAT_NAMESPACE,
+        source: "frontend",
+        timestamp: new Date(),
+      };
 
-        navigator.sendBeacon(
-          `${import.meta.env.VITE_BASE_URL}${METRICS_LOGS}`,
-          JSON.stringify({
-            logs: [...logsRef.current, logOnCloseTab],
-            token: getToken(),
-          }),
-        );
-      }
-    });
+      navigator.sendBeacon(
+        `${import.meta.env.VITE_BASE_URL}${METRICS_LOGS}`,
+        JSON.stringify({
+          logs: [...logsRef.current, logOnCloseTab],
+          token: getToken(),
+        }),
+      );
+
+      logsRef.current = [];
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   return { logsRef };
