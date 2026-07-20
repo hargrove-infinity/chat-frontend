@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useUserSearch } from "./UserSearch.hooks";
+import { highlightMatch } from "./UserSearch.helpers";
 import styles from "./UserSearch.module.css";
 
 export const UserSearch: FC = () => {
@@ -96,9 +97,12 @@ export const UserSearch: FC = () => {
             {users.map((u) => (
               <div key={u.email} className={styles.resultItem}>
                 <div className={styles.resultName}>
-                  {u.firstName} {u.lastName}
+                  {highlightMatch(u.firstName, text)}{" "}
+                  {highlightMatch(u.lastName, text)}
                 </div>
-                <div className={styles.resultEmail}>{u.email}</div>
+                <div className={styles.resultEmail}>
+                  {highlightMatch(u.email, text)}
+                </div>
               </div>
             ))}
           </InfiniteScroll>

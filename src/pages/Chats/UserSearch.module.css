@@ -129,3 +129,8 @@
     transform: rotate(360deg);
   }
 }
+
+.highlightMark {
+  background-color: transparent;
+  color: var(--yellow);
+}
