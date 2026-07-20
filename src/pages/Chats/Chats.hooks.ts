@@ -739,6 +739,18 @@ const useGroupChatReadReceiptMenu = () => {
   };
 };
 
+const useChatsModalUserSearch = () => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleSearchOpen = (bool: boolean) => () => setIsSearchOpen(bool);
+
+  return {
+    isSearchOpen,
+    openUserSearchModal: handleSearchOpen(true),
+    closeUserSearchModal: handleSearchOpen(false),
+  };
+};
+
 export const useChats = () => {
   const { logsRef } = useChatLogs();
   useChatSocket(logsRef);
@@ -749,6 +761,7 @@ export const useChats = () => {
   const typing = useChatsTypingText();
   const observer = useChatMessageObserver(chat.messages);
   const readReceiptMenu = useGroupChatReadReceiptMenu();
+  const modalUserSearch = useChatsModalUserSearch();
 
   return {
     chat,
@@ -758,5 +771,6 @@ export const useChats = () => {
     typing,
     observer,
     readReceiptMenu,
+    modalUserSearch,
   };
 };

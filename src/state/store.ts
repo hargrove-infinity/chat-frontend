@@ -7,10 +7,12 @@ import {
   initialChatsState,
   type ChatsSlice,
 } from "./chatsSlice";
+import { createUsersSlice, type UsersSlice } from "./usersSlice";
 
 type StoreState = AppSlice &
   AuthSlice &
-  ChatsSlice & {
+  ChatsSlice &
+  UsersSlice & {
     logout: () => void;
   };
 
@@ -18,6 +20,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
   ...createAppSlice(set, get, api),
   ...createAuthSlice(set, get, api),
   ...createChatsSlice(set, get, api),
+  ...createUsersSlice(set, get, api),
   logout: () => {
     const { chatSocket } = get();
 

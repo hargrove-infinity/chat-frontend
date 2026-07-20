@@ -107,3 +107,19 @@ export type LogInput = {
   source?: string | null | undefined;
   timestamp?: Date | undefined;
 };
+
+/**
+ * USERS
+ */
+
+export type User = {
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export type UsersPayload = {
+  content: User[];
+  hasMore: boolean;
+  pageNumber: number;
+};
