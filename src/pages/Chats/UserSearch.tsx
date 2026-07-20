@@ -19,6 +19,7 @@ export const UserSearch: FC = () => {
   const isInitialLoading = hasQuery && isSearching;
   const isEmpty = hasQuery && !isSearching && dataLength === 0;
   const isIdle = !hasQuery;
+  const isShowingResults = !isIdle && !isInitialLoading && !isEmpty;
 
   return (
     <div className={styles.container}>
@@ -29,7 +30,19 @@ export const UserSearch: FC = () => {
         onChange={(e) => setText(e.target.value)}
       />
 
-      <div id="scrollableDiv" className={styles.resultsList}>
+      <div
+        id="scrollableDiv"
+        // Placeholder states (idle/searching/empty) get a fixed-height box
+        // so the centered message looks right. The results state instead
+        // sizes to its own content (capped by max-height) — this is what
+        // stops react-infinite-scroll-component's "container isn't full
+        // yet" auto-fetch: that check only fires when scrollHeight <=
+        // clientHeight, which can't happen once height always matches
+        // content exactly (or is genuinely clipped/scrollable).
+        className={`${styles.resultsList} ${
+          isShowingResults ? styles.resultsListScroll : styles.resultsListFill
+        }`}
+      >
         {isIdle && (
           <div className={styles.stateContainer}>
             <svg
@@ -81,7 +94,7 @@ export const UserSearch: FC = () => {
           </div>
         )}
 
-        {!isIdle && !isInitialLoading && !isEmpty && (
+        {isShowingResults && (
           <InfiniteScroll
             dataLength={dataLength}
             next={fetchNextPage}
