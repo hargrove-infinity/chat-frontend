@@ -116,11 +116,11 @@ export const UserSearch: FC<UserSearchProps> = ({
             scrollableTarget="scrollableDiv"
           >
             {users.map((u) => {
-              const isSelected = selectedUserIds.includes(u.email);
+              const isSelected = selectedUserIds.includes(u.id);
 
               return (
                 <label
-                  key={u.email}
+                  key={u.id}
                   className={`${styles.resultItem} ${
                     isSelected ? styles.resultItemSelected : ""
                   }`}
@@ -129,7 +129,7 @@ export const UserSearch: FC<UserSearchProps> = ({
                     type="checkbox"
                     className={styles.resultCheckbox}
                     checked={isSelected}
-                    onChange={() => onToggleUser(u.email)}
+                    onChange={() => onToggleUser(u.id)}
                   />
 
                   <div className={styles.resultContent}>
