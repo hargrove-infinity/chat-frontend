@@ -4,7 +4,15 @@ import { useUserSearch } from "./UserSearch.hooks";
 import { highlightMatch } from "./UserSearch.helpers";
 import styles from "./UserSearch.module.css";
 
-export const UserSearch: FC = () => {
+type UserSearchProps = {
+  selectedUserIds: string[];
+  onToggleUser: (userId: string) => void;
+};
+
+export const UserSearch: FC<UserSearchProps> = ({
+  selectedUserIds,
+  onToggleUser,
+}) => {
   const {
     text,
     setText,
@@ -107,17 +115,35 @@ export const UserSearch: FC = () => {
             }
             scrollableTarget="scrollableDiv"
           >
-            {users.map((u) => (
-              <div key={u.email} className={styles.resultItem}>
-                <div className={styles.resultName}>
-                  {highlightMatch(u.firstName, text)}{" "}
-                  {highlightMatch(u.lastName, text)}
-                </div>
-                <div className={styles.resultEmail}>
-                  {highlightMatch(u.email, text)}
-                </div>
-              </div>
-            ))}
+            {users.map((u) => {
+              const isSelected = selectedUserIds.includes(u.email);
+
+              return (
+                <label
+                  key={u.email}
+                  className={`${styles.resultItem} ${
+                    isSelected ? styles.resultItemSelected : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className={styles.resultCheckbox}
+                    checked={isSelected}
+                    onChange={() => onToggleUser(u.email)}
+                  />
+
+                  <div className={styles.resultContent}>
+                    <div className={styles.resultName}>
+                      {highlightMatch(u.firstName, text)}{" "}
+                      {highlightMatch(u.lastName, text)}
+                    </div>
+                    <div className={styles.resultEmail}>
+                      {highlightMatch(u.email, text)}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
           </InfiniteScroll>
         )}
       </div>

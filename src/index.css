@@ -34,6 +34,9 @@
   --overlay-scrim: rgba(0, 0, 0, 0.6);
   --shadow-color: rgba(0, 0, 0, 0.5);
 
+  --text-disabled: #5c5f6a;
+  --border-disabled: #2a2d35;
+
   font-family: "Montserrat", system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;

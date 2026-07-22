@@ -667,3 +667,73 @@
 .searchTriggerIcon {
   flex-shrink: 0;
 }
+
+.groupNameField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupNameInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.groupNameInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.groupNameInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.groupNameInputError {
+  border-color: var(--error);
+  background-color: var(--error-bg);
+}
+
+.groupNameInputError:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px var(--error-bg);
+}
+
+.groupNameErrorText {
+  font-size: 12px;
+  color: var(--error);
+  font-weight: 500;
+}
+
+.createChatButton {
+  width: 100%;
+  padding: 12px 0;
+  background-color: var(--accent);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.createChatButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.createChatButton:disabled {
+  background-color: var(--bg-surface-2);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}

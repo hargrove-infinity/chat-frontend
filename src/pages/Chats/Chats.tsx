@@ -354,8 +354,44 @@ export const Chats: FC = () => {
         isOpen={hook.modalUserSearch.isSearchOpen}
         onClose={hook.modalUserSearch.closeUserSearchModal}
         title="Search users"
+        footer={
+          <Fragment>
+            {hook.modalUserSearch.showGroupNameInput && (
+              <div className={styles.groupNameField}>
+                <input
+                  className={`${styles.groupNameInput} ${
+                    hook.modalUserSearch.groupNameError
+                      ? styles.groupNameInputError
+                      : ""
+                  }`}
+                  placeholder="Enter group chat name"
+                  value={hook.modalUserSearch.groupChatName}
+                  onChange={(e) =>
+                    hook.modalUserSearch.setGroupChatName(e.target.value)
+                  }
+                />
+                {hook.modalUserSearch.groupNameError && (
+                  <span className={styles.groupNameErrorText}>
+                    Enter name of chat
+                  </span>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              className={styles.createChatButton}
+              disabled={hook.modalUserSearch.isCreateChatDisabled}
+              onClick={hook.modalUserSearch.handleCreateChat}
+            >
+              {hook.modalUserSearch.createChatButtonText}
+            </button>
+          </Fragment>
+        }
       >
-        <UserSearch />
+        <UserSearch
+          selectedUserIds={hook.modalUserSearch.selectedUserIds}
+          onToggleUser={hook.modalUserSearch.toggleUserSelection}
+        />
       </Modal>
     </Fragment>
   );

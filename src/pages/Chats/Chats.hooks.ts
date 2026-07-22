@@ -741,13 +741,94 @@ const useGroupChatReadReceiptMenu = () => {
 
 const useChatsModalUserSearch = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [groupChatName, setGroupChatNameRaw] = useState("");
+  const [groupNameError, setGroupNameError] = useState(false);
 
-  const handleSearchOpen = (bool: boolean) => () => setIsSearchOpen(bool);
+  const resetSelection = () => {
+    setSelectedUserIds([]);
+    setGroupChatNameRaw("");
+    setGroupNameError(false);
+  };
+
+  const openUserSearchModal = () => setIsSearchOpen(true);
+
+  const closeUserSearchModal = () => {
+    setIsSearchOpen(false);
+    resetSelection();
+  };
+
+  const setGroupChatName = (value: string) => {
+    setGroupChatNameRaw(value);
+    if (groupNameError) setGroupNameError(false);
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      const next = prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId];
+
+      // Fewer than 2 users selected means the name input is no longer
+      // shown/required, so any stale error for it should disappear too.
+      if (next.length < 2 && groupNameError) {
+        setGroupNameError(false);
+      }
+
+      return next;
+    });
+  };
+
+  const selectedCount = selectedUserIds.length;
+  const isCreateChatDisabled = selectedCount === 0;
+  const showGroupNameInput = selectedCount >= 2;
+
+  const getButtonText = (selectedUsersNumber: number) => {
+    switch (selectedUsersNumber) {
+      case 0:
+        return "Create chat";
+      case 1:
+        return "Create single chat";
+      default:
+        return "Create group chat";
+    }
+  };
+
+  const handleCreateChat = () => {
+    if (isCreateChatDisabled) return;
+
+    // Group chat name is mandatory once 2+ users are selected - block
+    // creation and surface the error instead of closing the modal.
+    if (showGroupNameInput && !groupChatName.trim()) {
+      setGroupNameError(true);
+      return;
+    }
+
+    // Wiring this up to the actual "create chat" API/socket call is left
+    // for the backend integration step - this already has everything
+    // (selectedUserIds, and groupChatName when relevant) needed for it.
+    console.log("Create chat requested", {
+      userIds: selectedUserIds,
+      name: showGroupNameInput ? groupChatName.trim() : null,
+    });
+
+    closeUserSearchModal();
+  };
 
   return {
     isSearchOpen,
-    openUserSearchModal: handleSearchOpen(true),
-    closeUserSearchModal: handleSearchOpen(false),
+    selectedUserIds,
+    groupChatName,
+    groupNameError,
+    selectedCount,
+    isCreateChatDisabled,
+    showGroupNameInput,
+    createChatButtonText: getButtonText(selectedCount),
+    openUserSearchModal,
+    closeUserSearchModal,
+    toggleUserSelection,
+    setGroupChatName,
+    handleCreateChat,
   };
 };
 
