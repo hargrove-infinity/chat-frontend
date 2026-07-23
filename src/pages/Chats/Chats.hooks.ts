@@ -31,6 +31,7 @@ import type {
 } from "../../state/appSlice.types";
 import {
   selectChatsView,
+  selectCreateChat,
   selectIsCurrentChatGroup,
   selectTypingParticipants,
 } from "../../state/chatsSlice";
@@ -740,6 +741,8 @@ const useGroupChatReadReceiptMenu = () => {
 };
 
 const useChatsModalUserSearch = () => {
+  const createChat = useStore(selectCreateChat);
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [groupChatName, setGroupChatNameRaw] = useState("");
@@ -794,6 +797,8 @@ const useChatsModalUserSearch = () => {
     }
   };
 
+  const createChatButtonText = getButtonText(selectedCount);
+
   const handleCreateChat = () => {
     if (isCreateChatDisabled) return;
 
@@ -807,10 +812,20 @@ const useChatsModalUserSearch = () => {
     // Wiring this up to the actual "create chat" API/socket call is left
     // for the backend integration step - this already has everything
     // (selectedUserIds, and groupChatName when relevant) needed for it.
-    console.log("Create chat requested", {
+    const data = {
       userIds: selectedUserIds,
       name: showGroupNameInput ? groupChatName.trim() : null,
-    });
+    };
+
+    if (createChatButtonText === "Create group chat" && data.name) {
+      createChat({
+        name: data.name,
+        type: "GROUP",
+        participantIds: data.userIds,
+      });
+    } else {
+      createChat({ type: "DIRECT", participantIds: data.userIds });
+    }
 
     closeUserSearchModal();
   };
@@ -823,7 +838,7 @@ const useChatsModalUserSearch = () => {
     selectedCount,
     isCreateChatDisabled,
     showGroupNameInput,
-    createChatButtonText: getButtonText(selectedCount),
+    createChatButtonText,
     openUserSearchModal,
     closeUserSearchModal,
     toggleUserSelection,
