@@ -7,7 +7,11 @@ import {
   initialChatsState,
   type ChatsSlice,
 } from "./chatsSlice";
-import { createUsersSlice, type UsersSlice } from "./usersSlice";
+import {
+  createUsersSlice,
+  initialUsersState,
+  type UsersSlice,
+} from "./usersSlice";
 
 type StoreState = AppSlice &
   AuthSlice &
@@ -28,7 +32,12 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       chatSocket.disconnect();
     }
 
-    set({ ...initialAppState, ...initialAuthState, ...initialChatsState });
+    set({
+      ...initialAppState,
+      ...initialAuthState,
+      ...initialChatsState,
+      ...initialUsersState,
+    });
     deleteToken();
   },
 }));
