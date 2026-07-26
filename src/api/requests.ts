@@ -35,5 +35,5 @@ export const getUsersRequest = (
   args: GetUsersArgs,
 ): ApiPromise<UsersPayload> => {
   const { page, size, text } = args;
-  return api.get(`${USERS}?page=${page}&size=${size}&text=${text}`);
+  return api.get(USERS, { params: { page, size, text } });
 };

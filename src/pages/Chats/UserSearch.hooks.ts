@@ -53,7 +53,12 @@ export const useUserSearch = () => {
     const currentRequestId = ++requestIdRef.current;
 
     debounceRef.current = setTimeout(() => {
-      getUsers({ text, size: PAGE_SIZE, page: "0" }).finally(() => {
+      getUsers({
+        text,
+        size: PAGE_SIZE,
+        page: "0",
+        requestId: currentRequestId,
+      }).finally(() => {
         // Only the latest debounced request may clear the pending flag,
         // so a stale in-flight request resolving late can't flip the UI
         // out of "searching" for whatever the user is currently typing.
@@ -69,7 +74,14 @@ export const useUserSearch = () => {
   }, [text, getUsers]);
 
   const fetchNextPage = useCallback(() => {
-    getUsers({ text, size: PAGE_SIZE, page: String(nextPage + 1) });
+    const currentRequestId = ++requestIdRef.current;
+
+    getUsers({
+      text,
+      size: PAGE_SIZE,
+      page: String(nextPage + 1),
+      requestId: currentRequestId,
+    });
   }, [text, getUsers, nextPage]);
 
   return {

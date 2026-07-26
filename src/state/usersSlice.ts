@@ -3,7 +3,12 @@ import type { User } from "../api/types";
 import { getUsersRequest } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
 
-export type GetUsersArgs = { text: string; page: string; size: string };
+export type GetUsersArgs = {
+  text: string;
+  page: string;
+  size: string;
+  requestId: number;
+};
 
 export const initialUsersState = {
   errors: null,
@@ -11,6 +16,7 @@ export const initialUsersState = {
   users: [],
   hasMore: false,
   pageNumber: 0,
+  latestRequestId: 0,
 };
 
 export interface UsersSlice {
@@ -19,6 +25,7 @@ export interface UsersSlice {
   users: User[];
   hasMore: boolean;
   pageNumber: number;
+  latestRequestId: number;
   getUsers: (args: GetUsersArgs) => Promise<void>;
 }
 
@@ -28,8 +35,14 @@ export const createUsersSlice: StateCreator<UsersSlice> = (set, get) => ({
     const prevUsers = get().users;
 
     try {
-      set({ loadingGetUsers: true });
+      set({ loadingGetUsers: true, latestRequestId: args.requestId });
+
       const res = await getUsersRequest(args);
+
+      if (get().latestRequestId !== args.requestId) {
+        return;
+      }
+
       const { payload } = res.data;
 
       const newUsers =
@@ -44,6 +57,10 @@ export const createUsersSlice: StateCreator<UsersSlice> = (set, get) => ({
         pageNumber: payload.pageNumber,
       });
     } catch (error) {
+      if (get().latestRequestId !== args.requestId) {
+        return;
+      }
+
       set({ loadingGetUsers: false });
 
       if (isAxiosError(error)) {
