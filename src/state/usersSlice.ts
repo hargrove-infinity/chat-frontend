@@ -57,11 +57,11 @@ export const createUsersSlice: StateCreator<UsersSlice> = (set, get) => ({
         pageNumber: payload.pageNumber,
       });
     } catch (error) {
-      set({ loadingGetUsers: false });
-
       if (get().latestRequestId !== args.requestId) {
         return;
       }
+
+      set({ loadingGetUsers: false });
 
       if (isAxiosError(error)) {
         if (isApiError(error)) {
