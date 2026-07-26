@@ -7,10 +7,16 @@ import {
   initialChatsState,
   type ChatsSlice,
 } from "./chatsSlice";
+import {
+  createUsersSlice,
+  initialUsersState,
+  type UsersSlice,
+} from "./usersSlice";
 
 type StoreState = AppSlice &
   AuthSlice &
-  ChatsSlice & {
+  ChatsSlice &
+  UsersSlice & {
     logout: () => void;
   };
 
@@ -18,6 +24,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
   ...createAppSlice(set, get, api),
   ...createAuthSlice(set, get, api),
   ...createChatsSlice(set, get, api),
+  ...createUsersSlice(set, get, api),
   logout: () => {
     const { chatSocket } = get();
 
@@ -25,7 +32,12 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       chatSocket.disconnect();
     }
 
-    set({ ...initialAppState, ...initialAuthState, ...initialChatsState });
+    set({
+      ...initialAppState,
+      ...initialAuthState,
+      ...initialChatsState,
+      ...initialUsersState,
+    });
     deleteToken();
   },
 }));
