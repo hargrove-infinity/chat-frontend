@@ -37,7 +37,7 @@ export interface ChatsSlice {
 
 export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
   ...initialChatsState,
-  createChat: async (body: any) => {
+  createChat: async (body: CreateChatArgs) => {
     try {
       set({ loadingCreateChat: true });
       await createChatRequest(body);
