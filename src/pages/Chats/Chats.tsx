@@ -384,7 +384,12 @@ export const Chats: FC = () => {
               disabled={hook.modalUserSearch.isCreateChatDisabled}
               onClick={hook.modalUserSearch.handleCreateChat}
             >
-              {hook.modalUserSearch.createChatButtonText}
+              {hook.modalUserSearch.isCreatingChat && (
+                <span className={styles.createChatSpinner} aria-hidden="true" />
+              )}
+              {hook.modalUserSearch.isCreatingChat
+                ? "Creating..."
+                : hook.modalUserSearch.createChatButtonText}
             </button>
           </Fragment>
         }

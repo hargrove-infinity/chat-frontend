@@ -35,6 +35,7 @@ import {
   selectCreateChat,
   selectIsChatCreated,
   selectIsCurrentChatGroup,
+  selectLoadingCreateChat,
   selectTypingParticipants,
 } from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
@@ -745,6 +746,7 @@ const useGroupChatReadReceiptMenu = () => {
 const useChatsModalUserSearch = () => {
   const createChat = useStore(selectCreateChat);
   const isChatCreated = useStore(selectIsChatCreated);
+  const isCreatingChat = useStore(selectLoadingCreateChat);
   const errors = useStore(selectChatsErrors);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -787,7 +789,10 @@ const useChatsModalUserSearch = () => {
   };
 
   const selectedCount = selectedUserIds.length;
-  const isCreateChatDisabled = selectedCount === 0;
+  // Disabled both when nothing is selected AND while a create-chat
+  // request is already in flight, so a slow network can't be exploited
+  // for duplicate submissions via repeated clicks.
+  const isCreateChatDisabled = selectedCount === 0 || isCreatingChat;
   const showGroupNameInput = selectedCount >= 2;
 
   const getButtonText = (selectedUsersNumber: number) => {
@@ -844,6 +849,7 @@ const useChatsModalUserSearch = () => {
     groupNameError,
     selectedCount,
     isCreateChatDisabled,
+    isCreatingChat,
     showGroupNameInput,
     createChatButtonText,
     errors,

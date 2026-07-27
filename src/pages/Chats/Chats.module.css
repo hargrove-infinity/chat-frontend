@@ -737,3 +737,31 @@
   color: var(--text-disabled);
   cursor: not-allowed;
 }
+
+/* Spinner + disabled state for the create-chat button in the search modal */
+.createChatButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.createChatButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.createChatSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: var(--text-primary);
+  border-radius: 50%;
+  animation: createChatSpin 0.7s linear infinite;
+}
+
+@keyframes createChatSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

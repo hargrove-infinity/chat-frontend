@@ -128,6 +128,10 @@ export const selectIsChatCreated = (state: ChatsSlice) => {
   return state.isChatCreated;
 };
 
+export const selectLoadingCreateChat = (state: ChatsSlice) => {
+  return state.loadingCreateChat;
+};
+
 export const selectChatsErrors = (state: ChatsSlice) => {
   return state.errors;
 };
