@@ -21,6 +21,7 @@ export const initialChatsState = {
   loadingGetMessagesByChat: false,
   chats: null,
   messages: null,
+  isChatCreated: false,
 };
 
 export interface ChatsSlice {
@@ -30,6 +31,7 @@ export interface ChatsSlice {
   loadingGetMessagesByChat: boolean;
   chats: null | Chat[];
   messages: null | MessageLocal[];
+  isChatCreated: boolean;
   createChat: (body: CreateChatArgs) => Promise<void>;
   getChats: () => Promise<void>;
   getMessagesByChat: (chatId: string) => Promise<void>;
@@ -40,10 +42,17 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
   createChat: async (body: CreateChatArgs) => {
     try {
       set({ loadingCreateChat: true });
+
       await createChatRequest(body);
       const res = await getChatsRequest();
       const { payload } = res.data;
-      set({ loadingCreateChat: false, chats: payload });
+
+      set({
+        loadingCreateChat: false,
+        chats: payload,
+        isChatCreated: true,
+        errors: null,
+      });
     } catch (error) {
       set({ loadingCreateChat: false });
 
@@ -113,6 +122,14 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
 
 export const selectCreateChat = (state: ChatsSlice) => {
   return state.createChat;
+};
+
+export const selectIsChatCreated = (state: ChatsSlice) => {
+  return state.isChatCreated;
+};
+
+export const selectChatsErrors = (state: ChatsSlice) => {
+  return state.errors;
 };
 
 const getChatInitials = (name: string | null): string => {

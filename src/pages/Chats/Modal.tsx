@@ -6,6 +6,7 @@ type ModalProps = {
   title?: string;
   children: ReactNode;
   footer?: ReactNode;
+  errors: string[] | null;
   onClose: () => void;
 };
 
@@ -14,6 +15,7 @@ export const Modal: FC<ModalProps> = ({
   title,
   children,
   footer,
+  errors,
   onClose,
 }) => {
   useEffect(() => {
@@ -46,7 +48,18 @@ export const Modal: FC<ModalProps> = ({
 
         <div className={styles.body}>{children}</div>
 
-        {footer && <div className={styles.footer}>{footer}</div>}
+        {footer && (
+          <div className={styles.footer}>
+            {footer}
+            {errors &&
+              errors.length &&
+              errors.map((err, idx) => (
+                <p className={styles.errItm} key={`${err}-${idx}`}>
+                  {err}
+                </p>
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );

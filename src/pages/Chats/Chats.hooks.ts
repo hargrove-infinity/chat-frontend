@@ -30,8 +30,10 @@ import type {
   ReadReceiptPayload,
 } from "../../state/appSlice.types";
 import {
+  selectChatsErrors,
   selectChatsView,
   selectCreateChat,
+  selectIsChatCreated,
   selectIsCurrentChatGroup,
   selectTypingParticipants,
 } from "../../state/chatsSlice";
@@ -742,6 +744,8 @@ const useGroupChatReadReceiptMenu = () => {
 
 const useChatsModalUserSearch = () => {
   const createChat = useStore(selectCreateChat);
+  const isChatCreated = useStore(selectIsChatCreated);
+  const errors = useStore(selectChatsErrors);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
@@ -826,9 +830,12 @@ const useChatsModalUserSearch = () => {
     } else {
       createChat({ type: "DIRECT", participantIds: data.userIds });
     }
-
-    closeUserSearchModal();
   };
+
+  useEffect(() => {
+    closeUserSearchModal();
+    useStore.setState({ isChatCreated: false });
+  }, [isChatCreated]);
 
   return {
     isSearchOpen,
@@ -839,6 +846,7 @@ const useChatsModalUserSearch = () => {
     isCreateChatDisabled,
     showGroupNameInput,
     createChatButtonText,
+    errors,
     openUserSearchModal,
     closeUserSearchModal,
     toggleUserSelection,

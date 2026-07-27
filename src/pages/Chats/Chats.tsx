@@ -354,6 +354,7 @@ export const Chats: FC = () => {
         isOpen={hook.modalUserSearch.isSearchOpen}
         onClose={hook.modalUserSearch.closeUserSearchModal}
         title="Search users"
+        errors={hook.modalUserSearch.errors}
         footer={
           <Fragment>
             {hook.modalUserSearch.showGroupNameInput && (
