@@ -33,7 +33,6 @@ import {
   selectChatsErrors,
   selectChatsView,
   selectCreateChat,
-  selectIsChatCreated,
   selectIsCurrentChatGroup,
   selectLoadingCreateChat,
   selectTypingParticipants,
@@ -745,7 +744,6 @@ const useGroupChatReadReceiptMenu = () => {
 
 const useChatsModalUserSearch = () => {
   const createChat = useStore(selectCreateChat);
-  const isChatCreated = useStore(selectIsChatCreated);
   const isCreatingChat = useStore(selectLoadingCreateChat);
   const errors = useStore(selectChatsErrors);
 
@@ -808,7 +806,7 @@ const useChatsModalUserSearch = () => {
 
   const createChatButtonText = getButtonText(selectedCount);
 
-  const handleCreateChat = () => {
+  const handleCreateChat = async () => {
     if (isCreateChatDisabled) return;
 
     // Group chat name is mandatory once 2+ users are selected - block
@@ -827,20 +825,26 @@ const useChatsModalUserSearch = () => {
     };
 
     if (createChatButtonText === "Create group chat" && data.name) {
-      createChat({
+      const ok = await createChat({
         name: data.name,
         type: "GROUP",
         participantIds: data.userIds,
       });
+
+      if (ok) {
+        closeUserSearchModal();
+      }
     } else {
-      createChat({ type: "DIRECT", participantIds: data.userIds });
+      const ok = await createChat({
+        type: "DIRECT",
+        participantIds: data.userIds,
+      });
+
+      if (ok) {
+        closeUserSearchModal();
+      }
     }
   };
-
-  useEffect(() => {
-    closeUserSearchModal();
-    useStore.setState({ isChatCreated: false });
-  }, [isChatCreated]);
 
   return {
     isSearchOpen,

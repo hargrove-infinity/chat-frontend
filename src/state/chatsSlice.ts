@@ -21,7 +21,6 @@ export const initialChatsState = {
   loadingGetMessagesByChat: false,
   chats: null,
   messages: null,
-  isChatCreated: false,
 };
 
 export interface ChatsSlice {
@@ -31,8 +30,7 @@ export interface ChatsSlice {
   loadingGetMessagesByChat: boolean;
   chats: null | Chat[];
   messages: null | MessageLocal[];
-  isChatCreated: boolean;
-  createChat: (body: CreateChatArgs) => Promise<void>;
+  createChat: (body: CreateChatArgs) => Promise<boolean>;
   getChats: () => Promise<void>;
   getMessagesByChat: (chatId: string) => Promise<void>;
 }
@@ -47,25 +45,23 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
       const res = await getChatsRequest();
       const { payload } = res.data;
 
-      set({
-        loadingCreateChat: false,
-        chats: payload,
-        isChatCreated: true,
-        errors: null,
-      });
+      set({ loadingCreateChat: false, chats: payload, errors: null });
+
+      return true;
     } catch (error) {
       set({ loadingCreateChat: false });
 
       if (isAxiosError(error)) {
         if (isApiError(error)) {
           set({ errors: error.response.data.errors });
-          return;
+          return false;
         }
         set({ errors: ["Unknown axios error"] });
-        return;
+        return false;
       }
 
       set({ errors: ["Unknown error"] });
+      return false;
     }
   },
   getChats: async () => {
@@ -122,10 +118,6 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
 
 export const selectCreateChat = (state: ChatsSlice) => {
   return state.createChat;
-};
-
-export const selectIsChatCreated = (state: ChatsSlice) => {
-  return state.isChatCreated;
 };
 
 export const selectLoadingCreateChat = (state: ChatsSlice) => {
