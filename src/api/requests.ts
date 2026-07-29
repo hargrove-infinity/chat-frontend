@@ -16,7 +16,7 @@ export const loginRequest = (args: AuthCredentials): ApiPromise<string> => {
 };
 
 // Chats
-export const createChatRequest = (body: CreateChatArgs): ApiPromise<Chat[]> => {
+export const createChatRequest = (body: CreateChatArgs): ApiPromise<Chat> => {
   return api.post(CHATS, body);
 };
 
