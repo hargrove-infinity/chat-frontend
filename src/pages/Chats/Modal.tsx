@@ -3,12 +3,21 @@ import styles from "./Modal.module.css";
 
 type ModalProps = {
   isOpen: boolean;
-  onClose: () => void;
   title?: string;
   children: ReactNode;
+  footer?: ReactNode;
+  errors: string[] | null;
+  onClose: () => void;
 };
 
-export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: FC<ModalProps> = ({
+  isOpen,
+  title,
+  children,
+  footer,
+  errors,
+  onClose,
+}) => {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -38,6 +47,19 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
         </div>
 
         <div className={styles.body}>{children}</div>
+
+        {footer && (
+          <div className={styles.footer}>
+            {footer}
+            {errors &&
+              errors.length &&
+              errors.map((err, idx) => (
+                <p className={styles.errItm} key={`${err}-${idx}`}>
+                  {err}
+                </p>
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );

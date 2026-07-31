@@ -1,3 +1,4 @@
+import type { CreateChatArgs } from "../state/chatsSlice";
 import type { GetUsersArgs } from "../state/usersSlice";
 import { api } from "./api";
 import { LOGIN, CHATS, MESSAGES, USERS } from "./endpoints";
@@ -15,6 +16,10 @@ export const loginRequest = (args: AuthCredentials): ApiPromise<string> => {
 };
 
 // Chats
+export const createChatRequest = (body: CreateChatArgs): ApiPromise<Chat> => {
+  return api.post(CHATS, body);
+};
+
 export const getChatsRequest = (): ApiPromise<Chat[]> => {
   return api.get(CHATS);
 };

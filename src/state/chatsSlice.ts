@@ -1,11 +1,22 @@
 import type { StateCreator } from "zustand";
 import type { Chat, MessageLocal } from "../api/types";
-import { getChatsRequest, getMessagesByChatRequest } from "../api/requests";
+import {
+  createChatRequest,
+  getChatsRequest,
+  getMessagesByChatRequest,
+} from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
 import { getUser } from "../utils/getUser";
 
+export type CreateChatArgs = {
+  type: "DIRECT" | "GROUP";
+  participantIds: string[];
+  name?: string | null;
+};
+
 export const initialChatsState = {
   errors: null,
+  loadingCreateChat: false,
   loadingGetChats: false,
   loadingGetMessagesByChat: false,
   chats: null,
@@ -14,16 +25,45 @@ export const initialChatsState = {
 
 export interface ChatsSlice {
   errors: null | string[];
+  loadingCreateChat: boolean;
   loadingGetChats: boolean;
   loadingGetMessagesByChat: boolean;
   chats: null | Chat[];
   messages: null | MessageLocal[];
+  createChat: (body: CreateChatArgs) => Promise<boolean>;
   getChats: () => Promise<void>;
   getMessagesByChat: (chatId: string) => Promise<void>;
 }
 
 export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
   ...initialChatsState,
+  createChat: async (body: CreateChatArgs) => {
+    try {
+      set({ loadingCreateChat: true });
+
+      await createChatRequest(body);
+      const res = await getChatsRequest();
+      const { payload } = res.data;
+
+      set({ loadingCreateChat: false, chats: payload, errors: null });
+
+      return true;
+    } catch (error) {
+      set({ loadingCreateChat: false });
+
+      if (isAxiosError(error)) {
+        if (isApiError(error)) {
+          set({ errors: error.response.data.errors });
+          return false;
+        }
+        set({ errors: ["Unknown axios error"] });
+        return false;
+      }
+
+      set({ errors: ["Unknown error"] });
+      return false;
+    }
+  },
   getChats: async () => {
     try {
       set({ loadingGetChats: true });
@@ -75,6 +115,18 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
     }
   },
 });
+
+export const selectCreateChat = (state: ChatsSlice) => {
+  return state.createChat;
+};
+
+export const selectLoadingCreateChat = (state: ChatsSlice) => {
+  return state.loadingCreateChat;
+};
+
+export const selectChatsErrors = (state: ChatsSlice) => {
+  return state.errors;
+};
 
 const getChatInitials = (name: string | null): string => {
   if (!name) return "";

@@ -37,18 +37,11 @@
   box-sizing: border-box;
 }
 
-/* Used for idle / searching / empty placeholders: takes up the remaining
-   flex space so `.stateContainer { height: 100% }` has something concrete
-   to center against. */
 .resultsListFill {
   flex: 1;
   overflow-y: auto;
 }
 
-/* Used while actual results are rendered: sized to its own content, capped
-   at 260px. Never taller than its content unless genuinely clipped (and
-   therefore already scrollable) — this is what prevents
-   react-infinite-scroll-component's "container not full yet" auto-fetch. */
 .resultsListScroll {
   flex: 0 1 auto;
   max-height: 260px;
@@ -57,8 +50,8 @@
 
 .resultItem {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
@@ -71,6 +64,29 @@
 
 .resultItem:last-child {
   border-bottom: none;
+}
+
+.resultItemSelected {
+  background-color: var(--accent-soft);
+}
+
+.resultItemSelected:hover {
+  background-color: var(--accent-soft);
+}
+
+.resultCheckbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.resultContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .resultName {
