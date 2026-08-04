@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { authClient } from "../../lib/auth";
-import { VERIFIED } from "../../constants/routes";
+import { EMAIL_VERIFICATION, VERIFIED } from "../../constants/routes";
 
 export function SignUp() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +26,8 @@ export function SignUp() {
       setError(error.message ?? "Signup failed");
       return;
     }
+
+    navigate(EMAIL_VERIFICATION);
   }
 
   return (

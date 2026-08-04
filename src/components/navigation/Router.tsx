@@ -7,6 +7,7 @@ import {
   SIGN_UP,
   VERIFIED,
   SIGN_IN,
+  EMAIL_VERIFICATION,
 } from "../../constants/routes";
 import { useStore } from "../../state/store";
 import { Chats } from "../../pages/Chats/Chats";
@@ -18,6 +19,7 @@ import { ChatRoute } from "./ChatRoute";
 import { PublicRoute } from "./PublicRoute";
 import { Verified } from "../../pages/Verified/Verified";
 import { SignIn } from "../../pages/SignIn/SignIn";
+import { EmailVerification } from "../../pages/EmailVerification/EmailVerification";
 
 export const Router = () => {
   const { isAuthenticated, user } = useStore();
@@ -33,6 +35,7 @@ export const Router = () => {
         <Route path={HOME} element={<Navigate to={defaultPath} replace />} />
         <Route element={<PublicRoute />}>
           <Route path={SIGN_UP} element={<SignUp />} />
+          <Route path={EMAIL_VERIFICATION} element={<EmailVerification />} />
           <Route path={SIGN_IN} element={<SignIn />} />
           <Route path={VERIFIED} element={<Verified />} />
         </Route>
