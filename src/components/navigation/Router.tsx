@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   HOME,
-  LOGIN,
   CHATS,
   METRICS,
   CHATS_CONTACT_ID,
@@ -11,7 +10,6 @@ import {
 } from "../../constants/routes";
 import { useStore } from "../../state/store";
 import { Chats } from "../../pages/Chats/Chats";
-import { Login } from "../../pages/Login/Login";
 import { SignUp } from "../../pages/SignUp/SignUp";
 import { Metrics } from "../../pages/Metrics/Metrics";
 import { getDefaultPath } from "../../utils/getDefaultPath";
@@ -34,7 +32,6 @@ export const Router = () => {
       <Routes>
         <Route path={HOME} element={<Navigate to={defaultPath} replace />} />
         <Route element={<PublicRoute />}>
-          <Route path={LOGIN} element={<Login />} />
           <Route path={SIGN_UP} element={<SignUp />} />
           <Route path={SIGN_IN} element={<SignIn />} />
           <Route path={VERIFIED} element={<Verified />} />

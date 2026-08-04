@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { LOGIN } from "../../constants/routes";
+import { SIGN_IN } from "../../constants/routes";
 import { useStore } from "../../state/store";
 
 export const ChatRoute = () => {
@@ -10,6 +10,6 @@ export const ChatRoute = () => {
   return isAuthenticated && !user?.isAdmin ? (
     <Outlet />
   ) : (
-    <Navigate to={LOGIN} replace />
+    <Navigate to={SIGN_IN} replace />
   );
 };
