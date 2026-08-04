@@ -6,7 +6,7 @@ import {
   getMessagesByChatRequest,
 } from "../api/requests";
 import { isApiError, isAxiosError } from "../api/utils";
-import { getUser } from "../utils/getUser";
+import type { StoreState } from "./store";
 
 export type CreateChatArgs = {
   type: "DIRECT" | "GROUP";
@@ -35,7 +35,10 @@ export interface ChatsSlice {
   getMessagesByChat: (chatId: string) => Promise<void>;
 }
 
-export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
+export const createChatsSlice: StateCreator<StoreState, [], [], ChatsSlice> = (
+  set,
+  get,
+) => ({
   ...initialChatsState,
   createChat: async (body: CreateChatArgs) => {
     try {
@@ -93,7 +96,7 @@ export const createChatsSlice: StateCreator<ChatsSlice> = (set) => ({
 
       const messagesWithOwners = payload.map((msg) => ({
         ...msg,
-        isMine: getUser()?.id === msg.userId,
+        isMine: get().user?.id === msg.userId,
         // Messages fetched from server have no errors (successfully retrieved)
         error: null,
       }));

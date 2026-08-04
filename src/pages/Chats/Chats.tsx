@@ -96,7 +96,7 @@ export const Chats: FC = () => {
                 </div>
                 <div className={styles.userDetails}>
                   <div className={styles.userName}>
-                    {hook.profile.user.firstName} {hook.profile.user.lastName}
+                    {hook.profile.user.name}
                   </div>
                   <div className={styles.userEmail}>
                     {hook.profile.user.email}

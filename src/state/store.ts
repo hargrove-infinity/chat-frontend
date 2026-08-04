@@ -13,7 +13,7 @@ import {
   type UsersSlice,
 } from "./usersSlice";
 
-type StoreState = AppSlice &
+export type StoreState = AppSlice &
   AuthSlice &
   ChatsSlice &
   UsersSlice & {

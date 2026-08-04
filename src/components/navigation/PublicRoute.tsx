@@ -3,10 +3,12 @@ import { CHATS, METRICS } from "../../constants/routes";
 import { useStore } from "../../state/store";
 
 export const PublicRoute = () => {
-  const { isAuthenticated, isAdmin } = useStore();
+  const { isAuthenticated, user, isPending } = useStore();
+
+  if (isPending) return null;
 
   return isAuthenticated ? (
-    <Navigate to={isAdmin ? METRICS : CHATS} replace />
+    <Navigate to={user?.isAdmin ? METRICS : CHATS} replace />
   ) : (
     <Outlet />
   );

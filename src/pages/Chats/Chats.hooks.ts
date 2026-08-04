@@ -38,7 +38,6 @@ import {
   selectTypingParticipants,
 } from "../../state/chatsSlice";
 import { getToken } from "../../utils/token";
-import { getUser } from "../../utils/getUser";
 import { getTypingText } from "./Chats.helpers";
 
 const TYPING_TIMEOUT = 2000;
@@ -47,6 +46,7 @@ const MARK_AS_READ_TIMEOUT = 1500;
 const useChatLogs = () => {
   const logsRef = useRef<LogInput[]>([]);
   const chatSocket = useStore((state) => state.chatSocket);
+  const userId = useStore((state) => state.user?.id);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -57,7 +57,7 @@ const useChatLogs = () => {
         message: null,
         name: null,
         socketId: chatSocket?.id ?? null,
-        userId: getUser()?.id ?? null,
+        userId,
         event: "close_browser_tab",
         namespace: CHAT_NAMESPACE,
         source: "frontend",
@@ -88,6 +88,7 @@ const useChatLogs = () => {
 const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
   const { chatId } = useParams();
   const chatIdRef = useRef(chatId);
+  const userId = useStore((state) => state.user?.id);
 
   const setChatSocket = useStore((state) => state.setChatSocket);
 
@@ -158,8 +159,8 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
 
         const newMessage = {
           ...msg,
-          isMine: getUser()?.id === msg.userId,
-          read: getUser()?.id === msg.userId,
+          isMine: userId === msg.userId,
+          read: userId === msg.userId,
           // Messages from server are already sent successfully, no error
           error: null,
         };
@@ -225,7 +226,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
         message: error.message,
         name: error.name,
         socketId: chatSocket.id ?? null,
-        userId: getUser()?.id ?? null,
+        userId,
         event: "connect_error",
         namespace: CHAT_NAMESPACE,
         source: "frontend",
@@ -327,8 +328,8 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
 
 const useChatsMessages = () => {
   const { chatId } = useParams();
-  const user = getUser();
   const socket = useStore((state) => state.chatSocket);
+  const user = useStore((state) => state.user);
   const chats = useStore(useShallow(selectChatsView));
 
   const allMessages = useStore((state) => state.messages);
@@ -365,7 +366,7 @@ const useChatsMessages = () => {
       id: tempId,
       chatId,
       userId: user.id,
-      senderName: `${user.firstName} ${user.lastName}`,
+      senderName: user.name,
       content,
       status: MessageStatusEnum.SENDING,
       isMine: true,
@@ -523,17 +524,19 @@ const useChatsNavigation = () => {
 };
 
 const useChatUserProfile = () => {
-  const user = getUser();
+  const user = useStore((state) => state.user);
 
   const logout = useStore((state) => state.logout);
 
-  return { user, logout };
+  return {
+    user: user ? { id: user.id, name: user.name, email: user.name } : null,
+    logout,
+  };
 };
 
 const useChatsTypingText = () => {
   const { chatId } = useParams();
-
-  const currentUserId = getUser()?.id;
+  const currentUserId = useStore((state) => state.user?.id);
 
   const typingParticipants = useStore(
     useShallow((state) =>
@@ -547,7 +550,7 @@ const useChatsTypingText = () => {
 };
 
 const useChatMessageObserver = (messages: MessageLocal[]) => {
-  const userId = getUser()?.id;
+  const userId = useStore((state) => state.user?.id);
 
   const socket = useStore((state) => state.chatSocket);
 
