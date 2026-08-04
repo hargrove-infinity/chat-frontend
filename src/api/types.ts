@@ -18,14 +18,6 @@ export type ApiError = AxiosError<ApiErrorPayload> & {
 };
 
 /**
- * AUTH
- */
-export interface AuthCredentials {
-  email: string;
-  password: string;
-}
-
-/**
  * CHATS
  */
 

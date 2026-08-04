@@ -1,19 +1,8 @@
 import type { CreateChatArgs } from "../state/chatsSlice";
 import type { GetUsersArgs } from "../state/usersSlice";
 import { api } from "./api";
-import { LOGIN, CHATS, MESSAGES, USERS } from "./endpoints";
-import type {
-  ApiPromise,
-  AuthCredentials,
-  Chat,
-  MessageDTO,
-  UsersPayload,
-} from "./types";
-
-// Auth
-export const loginRequest = (args: AuthCredentials): ApiPromise<string> => {
-  return api.post(LOGIN, args);
-};
+import { CHATS, MESSAGES, USERS } from "./endpoints";
+import type { ApiPromise, Chat, MessageDTO, UsersPayload } from "./types";
 
 // Chats
 export const createChatRequest = (body: CreateChatArgs): ApiPromise<Chat> => {
