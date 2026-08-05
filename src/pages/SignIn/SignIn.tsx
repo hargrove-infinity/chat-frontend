@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { authClient } from "../../lib/auth";
 import { useStore } from "../../state/store";
-import { VERIFIED } from "../../constants/routes";
+import { EMAIL_VERIFICATION_CONFIRMED } from "../../constants/routes";
 import { setToken } from "../../utils/token";
 
 export function SignIn() {
@@ -51,7 +51,7 @@ export function SignIn() {
 
     const { error } = await authClient.sendVerificationEmail({
       email,
-      callbackURL: `${window.location.origin}${VERIFIED}`,
+      callbackURL: `${window.location.origin}${EMAIL_VERIFICATION_CONFIRMED}`,
     });
 
     setResendStatus(error ? "idle" : "sent");

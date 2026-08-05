@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "../../lib/auth";
-import { EMAIL_VERIFICATION, VERIFIED } from "../../constants/routes";
+import {
+  EMAIL_VERIFICATION_CONFIRMED,
+  EMAIL_VERIFICATION_PENDING,
+} from "../../constants/routes";
 
 export function SignUp() {
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ export function SignUp() {
       email,
       password,
       name,
-      callbackURL: `${window.location.origin}${VERIFIED}`,
+      callbackURL: `${window.location.origin}${EMAIL_VERIFICATION_CONFIRMED}`,
       isAdmin: false,
     });
 
@@ -27,7 +30,7 @@ export function SignUp() {
       return;
     }
 
-    navigate(EMAIL_VERIFICATION);
+    navigate(EMAIL_VERIFICATION_PENDING);
   }
 
   return (

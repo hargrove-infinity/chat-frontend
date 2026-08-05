@@ -5,9 +5,9 @@ import {
   METRICS,
   CHATS_CONTACT_ID,
   SIGN_UP,
-  VERIFIED,
+  EMAIL_VERIFICATION_CONFIRMED,
   SIGN_IN,
-  EMAIL_VERIFICATION,
+  EMAIL_VERIFICATION_PENDING,
 } from "../../constants/routes";
 import { useStore } from "../../state/store";
 import { Chats } from "../../pages/Chats/Chats";
@@ -17,9 +17,9 @@ import { getDefaultPath } from "../../utils/getDefaultPath";
 import { AdminRoute } from "./AdminRoute";
 import { ChatRoute } from "./ChatRoute";
 import { PublicRoute } from "./PublicRoute";
-import { Verified } from "../../pages/Verified/Verified";
+import { EmailVerificationConfirmed } from "../../pages/EmailVerificationConfirmed/EmailVerificationConfirmed";
 import { SignIn } from "../../pages/SignIn/SignIn";
-import { EmailVerification } from "../../pages/EmailVerification/EmailVerification";
+import { EmailVerificationPending } from "../../pages/EmailVerificationPending/EmailVerificationPending";
 
 export const Router = () => {
   const { isAuthenticated, user } = useStore();
@@ -35,9 +35,15 @@ export const Router = () => {
         <Route path={HOME} element={<Navigate to={defaultPath} replace />} />
         <Route element={<PublicRoute />}>
           <Route path={SIGN_UP} element={<SignUp />} />
-          <Route path={EMAIL_VERIFICATION} element={<EmailVerification />} />
+          <Route
+            path={EMAIL_VERIFICATION_PENDING}
+            element={<EmailVerificationPending />}
+          />
           <Route path={SIGN_IN} element={<SignIn />} />
-          <Route path={VERIFIED} element={<Verified />} />
+          <Route
+            path={EMAIL_VERIFICATION_CONFIRMED}
+            element={<EmailVerificationConfirmed />}
+          />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path={METRICS} element={<Metrics />} />
