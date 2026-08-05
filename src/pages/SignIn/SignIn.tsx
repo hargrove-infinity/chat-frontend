@@ -1,95 +1,115 @@
-import { useState } from "react";
-import { authClient } from "../../lib/auth";
-import { useStore } from "../../state/store";
-import { EMAIL_VERIFICATION_CONFIRMED } from "../../constants/routes";
-import { setToken } from "../../utils/token";
+import styles from "./SignIn.module.css";
+import { useSignIn } from "./SignIn.hooks";
 
 export function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [needsVerification, setNeedsVerification] = useState(false);
-  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">(
-    "idle",
-  );
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setNeedsVerification(false);
-
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-
-    if (error) {
-      if (error.status === 403) {
-        // account exists, credentials are correct, but email isn't verified yet
-        setNeedsVerification(true);
-        setError("Please verify your email before signing in.");
-        return;
-      }
-
-      setError(error.message ?? "Sign in failed");
-      return;
-    }
-
-    setToken(data.token);
-
-    useStore.setState((state) => {
-      return {
-        ...state,
-        isAuthenticated: true,
-        isAdmin: data.user.isAdmin,
-      };
-    });
-  }
-
-  async function handleResendVerification() {
-    setResendStatus("sending");
-
-    const { error } = await authClient.sendVerificationEmail({
-      email,
-      callbackURL: `${window.location.origin}${EMAIL_VERIFICATION_CONFIRMED}`,
-    });
-
-    setResendStatus(error ? "idle" : "sent");
-  }
+  const {
+    email,
+    password,
+    fieldErrors,
+    networkErrors,
+    isSubmitting,
+    needsVerification,
+    resendStatus,
+    handleEmailChange,
+    handlePasswordChange,
+    handleSubmit,
+    handleResendVerification,
+  } = useSignIn();
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        type="email"
-        placeholder="Email"
-        required
-      />
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Welcome back</h1>
+        <p className={styles.subtitle}>Sign in to continue chatting</p>
 
-      <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        type="password"
-        placeholder="Password"
-        required
-      />
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="email">
+              Email
+            </label>
 
-      {error && <p>{error}</p>}
+            <input
+              id="email"
+              type="email"
+              value={email}
+              disabled={isSubmitting}
+              placeholder="jane@example.com"
+              className={`${styles.input} ${
+                fieldErrors.email ? styles.inputError : ""
+              }`}
+              onChange={(e) => handleEmailChange(e.target.value)}
+            />
 
-      {needsVerification && (
-        <button
-          type="button"
-          onClick={handleResendVerification}
-          disabled={resendStatus !== "idle"}
-        >
-          {resendStatus === "sent"
-            ? "Verification email sent"
-            : "Resend verification email"}
-        </button>
-      )}
+            {fieldErrors.email && (
+              <p className={styles.fieldError}>{fieldErrors.email}</p>
+            )}
+          </div>
 
-      <button type="submit">Sign in</button>
-    </form>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="password">
+              Password
+            </label>
+
+            <input
+              id="password"
+              type="password"
+              value={password}
+              disabled={isSubmitting}
+              placeholder="Enter your password"
+              className={`${styles.input} ${
+                fieldErrors.password ? styles.inputError : ""
+              }`}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+            />
+
+            {fieldErrors.password && (
+              <p className={styles.fieldError}>{fieldErrors.password}</p>
+            )}
+          </div>
+
+          {networkErrors && networkErrors.length > 0 && (
+            <div className={styles.networkErrors}>
+              {networkErrors.map((err, idx) => (
+                <p className={styles.networkErrorItem} key={`${err}-${idx}`}>
+                  {err}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {needsVerification && (
+            <div className={styles.verificationSection}>
+              <button
+                type="button"
+                className={styles.verificationButton}
+                onClick={handleResendVerification}
+                disabled={resendStatus !== "idle" || isSubmitting}
+              >
+                {resendStatus === "sending" && (
+                  <span className={styles.spinner} aria-hidden="true" />
+                )}
+
+                {resendStatus === "sending"
+                  ? "Sending..."
+                  : resendStatus === "sent"
+                    ? "Verification email sent"
+                    : "Resend verification email"}
+              </button>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting && (
+              <span className={styles.spinner} aria-hidden="true" />
+            )}
+            {isSubmitting ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
