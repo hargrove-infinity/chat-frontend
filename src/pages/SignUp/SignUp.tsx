@@ -1,66 +1,108 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { authClient } from "../../lib/auth";
-import {
-  EMAIL_VERIFICATION_CONFIRMED,
-  EMAIL_VERIFICATION_PENDING,
-} from "../../constants/routes";
+import { useSignUp } from "./SignUp.hooks";
+import styles from "./SignUp.module.css";
 
 export function SignUp() {
-  const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const { error } = await authClient.signUp.email({
-      email,
-      password,
-      name,
-      callbackURL: `${window.location.origin}${EMAIL_VERIFICATION_CONFIRMED}`,
-      isAdmin: false,
-    });
-
-    if (error) {
-      setError(error.message ?? "Signup failed");
-      return;
-    }
-
-    navigate(EMAIL_VERIFICATION_PENDING);
-  }
+  const {
+    name,
+    email,
+    password,
+    fieldErrors,
+    networkErrors,
+    isSubmitting,
+    handleNameChange,
+    handleEmailChange,
+    handlePasswordChange,
+    handleSubmit,
+  } = useSignUp();
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        required
-      />
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Create an account</h1>
+        <p className={styles.subtitle}>Sign up to start chatting</p>
 
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        type="email"
-        placeholder="Email"
-        required
-      />
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="name">
+              Name
+            </label>
+            <input
+              id="name"
+              className={`${styles.input} ${
+                fieldErrors.name ? styles.inputError : ""
+              }`}
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Jane Doe"
+              disabled={isSubmitting}
+            />
+            {fieldErrors.name && (
+              <p className={styles.fieldError}>{fieldErrors.name}</p>
+            )}
+          </div>
 
-      <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        type="password"
-        placeholder="Password"
-        required
-      />
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              className={`${styles.input} ${
+                fieldErrors.email ? styles.inputError : ""
+              }`}
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              placeholder="jane@example.com"
+              disabled={isSubmitting}
+            />
+            {fieldErrors.email && (
+              <p className={styles.fieldError}>{fieldErrors.email}</p>
+            )}
+          </div>
 
-      {error && <p>{error}</p>}
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              className={`${styles.input} ${
+                fieldErrors.password ? styles.inputError : ""
+              }`}
+              value={password}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              placeholder="At least 8 characters"
+              disabled={isSubmitting}
+            />
+            {fieldErrors.password && (
+              <p className={styles.fieldError}>{fieldErrors.password}</p>
+            )}
+          </div>
 
-      <button type="submit">Sign up</button>
-    </form>
+          {networkErrors && networkErrors.length > 0 && (
+            <div className={styles.networkErrors}>
+              {networkErrors.map((err, idx) => (
+                <p className={styles.networkErrorItem} key={`${err}-${idx}`}>
+                  {err}
+                </p>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting && (
+              <span className={styles.spinner} aria-hidden="true" />
+            )}
+            {isSubmitting ? "Creating account..." : "Sign up"}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
