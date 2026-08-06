@@ -28,6 +28,7 @@ import { SignIn } from "../../pages/SignIn/SignIn";
 import { EmailVerificationPending } from "../../pages/EmailVerificationPending/EmailVerificationPending";
 import { signUpAction } from "../../pages/SignUp/SignUp.action";
 import { emailVerificationConfirmedAction } from "../../pages/EmailVerificationConfirmed/EmailVerificationConfirmed.action";
+import { signInAction } from "../../pages/SignIn/SignIn.action";
 
 const HomeRedirect = () => {
   const { isAuthenticated, user } = useStore();
@@ -50,7 +51,7 @@ const router = createBrowserRouter(
           path={EMAIL_VERIFICATION_PENDING}
           element={<EmailVerificationPending />}
         />
-        <Route path={SIGN_IN} element={<SignIn />} />
+        <Route path={SIGN_IN} element={<SignIn />} action={signInAction} />
         <Route
           path={EMAIL_VERIFICATION_CONFIRMED}
           element={<EmailVerificationConfirmed />}

@@ -1,3 +1,4 @@
+import { Form } from "react-router-dom";
 import styles from "./SignIn.module.css";
 import { useSignIn } from "./SignIn.hooks";
 
@@ -12,7 +13,6 @@ export function SignIn() {
     resendStatus,
     handleEmailChange,
     handlePasswordChange,
-    handleSubmit,
     handleResendVerification,
   } = useSignIn();
 
@@ -22,7 +22,7 @@ export function SignIn() {
         <h1 className={styles.title}>Welcome back</h1>
         <p className={styles.subtitle}>Sign in to continue chatting</p>
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <Form className={styles.form} method="post" noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="email">
               Email
@@ -30,6 +30,7 @@ export function SignIn() {
 
             <input
               id="email"
+              name="email"
               type="email"
               value={email}
               disabled={isSubmitting}
@@ -52,6 +53,7 @@ export function SignIn() {
 
             <input
               id="password"
+              name="password"
               type="password"
               value={password}
               disabled={isSubmitting}
@@ -108,7 +110,7 @@ export function SignIn() {
             )}
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
-        </form>
+        </Form>
       </div>
     </div>
   );

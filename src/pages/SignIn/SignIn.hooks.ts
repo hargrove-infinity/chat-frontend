@@ -1,20 +1,29 @@
-import { useState } from "react";
-import { authClient } from "../../lib/auth";
-import { useStore } from "../../state/store";
-import { EMAIL_VERIFICATION_CONFIRMED } from "../../constants/routes";
-import { setToken } from "../../utils/token";
-import { type SignInFieldErrors, validateSignInForm } from "./SignIn.helpers";
+import { useEffect, useState } from "react";
+import { useActionData, useNavigation } from "react-router-dom";
+import { type SignInFieldErrors } from "./SignIn.helpers";
+import type { SignInActionData } from "./SignIn.action";
+import { resendVerificationEmail } from "./SignIn.action";
 
 export function useSignIn() {
+  const actionData = useActionData() as SignInActionData | undefined;
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<SignInFieldErrors>({});
   const [networkErrors, setNetworkErrors] = useState<string[] | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">(
     "idle",
   );
+
+  const isSubmitting = navigation.state === "submitting";
+
+  useEffect(() => {
+    setFieldErrors(actionData?.fieldErrors ?? {});
+    setNetworkErrors(actionData?.networkErrors ?? null);
+    setNeedsVerification(actionData?.needsVerification ?? false);
+  }, [actionData]);
 
   function clearFieldError(field: keyof SignInFieldErrors) {
     setFieldErrors((prev) => {
@@ -35,47 +44,6 @@ export function useSignIn() {
     clearFieldError("password");
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setNetworkErrors(null);
-    setNeedsVerification(false);
-
-    const errors = validateSignInForm({ email, password });
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      if (error.status === 403) {
-        setNeedsVerification(true);
-        setNetworkErrors(["Please verify your email before signing in."]);
-        return;
-      }
-
-      setNetworkErrors([error.message ?? "Sign in failed"]);
-      return;
-    }
-
-    setToken(data.token);
-
-    useStore.setState((state) => ({
-      ...state,
-      isAuthenticated: true,
-      isAdmin: data.user.isAdmin,
-    }));
-  }
-
   async function handleResendVerification() {
     if (resendStatus !== "idle") {
       return;
@@ -83,10 +51,7 @@ export function useSignIn() {
 
     setResendStatus("sending");
 
-    const { error } = await authClient.sendVerificationEmail({
-      email,
-      callbackURL: `${window.location.origin}${EMAIL_VERIFICATION_CONFIRMED}`,
-    });
+    const { error } = await resendVerificationEmail(email);
 
     if (error) {
       setNetworkErrors([
@@ -109,7 +74,6 @@ export function useSignIn() {
     resendStatus,
     handleEmailChange,
     handlePasswordChange,
-    handleSubmit,
     handleResendVerification,
   };
 }
