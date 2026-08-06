@@ -1,3 +1,4 @@
+import { Form } from "react-router-dom";
 import { useSignUp } from "./SignUp.hooks";
 import styles from "./SignUp.module.css";
 
@@ -12,7 +13,6 @@ export function SignUp() {
     handleNameChange,
     handleEmailChange,
     handlePasswordChange,
-    handleSubmit,
   } = useSignUp();
 
   return (
@@ -21,13 +21,14 @@ export function SignUp() {
         <h1 className={styles.title}>Create an account</h1>
         <p className={styles.subtitle}>Sign up to start chatting</p>
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <Form className={styles.form} method="post" noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="name">
               Name
             </label>
             <input
               id="name"
+              name="name"
               className={`${styles.input} ${
                 fieldErrors.name ? styles.inputError : ""
               }`}
@@ -47,6 +48,7 @@ export function SignUp() {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               className={`${styles.input} ${
                 fieldErrors.email ? styles.inputError : ""
@@ -67,6 +69,7 @@ export function SignUp() {
             </label>
             <input
               id="password"
+              name="password"
               type="password"
               className={`${styles.input} ${
                 fieldErrors.password ? styles.inputError : ""
@@ -101,7 +104,7 @@ export function SignUp() {
             )}
             {isSubmitting ? "Creating account..." : "Sign up"}
           </button>
-        </form>
+        </Form>
       </div>
     </div>
   );

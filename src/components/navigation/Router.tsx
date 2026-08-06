@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  Route,
+  Navigate,
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+} from "react-router-dom";
 import {
   HOME,
   CHATS,
@@ -20,8 +26,9 @@ import { PublicRoute } from "./PublicRoute";
 import { EmailVerificationConfirmed } from "../../pages/EmailVerificationConfirmed/EmailVerificationConfirmed";
 import { SignIn } from "../../pages/SignIn/SignIn";
 import { EmailVerificationPending } from "../../pages/EmailVerificationPending/EmailVerificationPending";
+import { signUpAction } from "../../pages/SignUp/SignUp.action";
 
-export const Router = () => {
+const HomeRedirect = () => {
   const { isAuthenticated, user } = useStore();
 
   const defaultPath = getDefaultPath({
@@ -29,30 +36,34 @@ export const Router = () => {
     isAuthenticated,
   });
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path={HOME} element={<Navigate to={defaultPath} replace />} />
-        <Route element={<PublicRoute />}>
-          <Route path={SIGN_UP} element={<SignUp />} />
-          <Route
-            path={EMAIL_VERIFICATION_PENDING}
-            element={<EmailVerificationPending />}
-          />
-          <Route path={SIGN_IN} element={<SignIn />} />
-          <Route
-            path={EMAIL_VERIFICATION_CONFIRMED}
-            element={<EmailVerificationConfirmed />}
-          />
-        </Route>
-        <Route element={<AdminRoute />}>
-          <Route path={METRICS} element={<Metrics />} />
-        </Route>
-        <Route element={<ChatRoute />}>
-          <Route path={CHATS} element={<Chats />} />
-          <Route path={CHATS_CONTACT_ID} element={<Chats />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  return <Navigate to={defaultPath} replace />;
 };
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path={HOME} element={<HomeRedirect />} />
+      <Route element={<PublicRoute />}>
+        <Route path={SIGN_UP} element={<SignUp />} action={signUpAction} />
+        <Route
+          path={EMAIL_VERIFICATION_PENDING}
+          element={<EmailVerificationPending />}
+        />
+        <Route path={SIGN_IN} element={<SignIn />} />
+        <Route
+          path={EMAIL_VERIFICATION_CONFIRMED}
+          element={<EmailVerificationConfirmed />}
+        />
+      </Route>
+      <Route element={<AdminRoute />}>
+        <Route path={METRICS} element={<Metrics />} />
+      </Route>
+      <Route element={<ChatRoute />}>
+        <Route path={CHATS} element={<Chats />} />
+        <Route path={CHATS_CONTACT_ID} element={<Chats />} />
+      </Route>
+    </>,
+  ),
+);
+
+export const Router = () => <RouterProvider router={router} />;
