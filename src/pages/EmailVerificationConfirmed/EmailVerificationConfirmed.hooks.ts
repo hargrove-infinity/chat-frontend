@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useActionData, useNavigation } from "react-router-dom";
 import { authClient } from "../../lib/auth";
-import { useStore } from "../../state/store";
 import { EMAIL_VERIFICATION_CONFIRMED } from "../../constants/routes";
-import { setToken } from "../../utils/token";
-import {
-  type EmailVerificationConfirmedFieldErrors,
-  validateEmailVerificationConfirmedForm,
-} from "./EmailVerificationConfirmed.helpers";
+import { type EmailVerificationConfirmedFieldErrors } from "./EmailVerificationConfirmed.helpers";
+import type { EmailVerificationConfirmedActionData } from "./EmailVerificationConfirmed.action";
 
 export function useEmailVerificationConfirmed() {
+  const actionData = useActionData() as
+    | EmailVerificationConfirmedActionData
+    | undefined;
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,14 +18,19 @@ export function useEmailVerificationConfirmed() {
     useState<EmailVerificationConfirmedFieldErrors>({});
 
   const [networkErrors, setNetworkErrors] = useState<string[] | null>(null);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [needsVerification, setNeedsVerification] = useState(false);
 
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">(
     "idle",
   );
+
+  const isSubmitting = navigation.state === "submitting";
+
+  useEffect(() => {
+    setFieldErrors(actionData?.fieldErrors ?? {});
+    setNetworkErrors(actionData?.networkErrors ?? null);
+    setNeedsVerification(actionData?.needsVerification ?? false);
+  }, [actionData]);
 
   function clearFieldError(field: keyof EmailVerificationConfirmedFieldErrors) {
     setFieldErrors((prev) => {
@@ -44,51 +51,6 @@ export function useEmailVerificationConfirmed() {
   function handlePasswordChange(value: string) {
     setPassword(value);
     clearFieldError("password");
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    setNetworkErrors(null);
-    setNeedsVerification(false);
-
-    const errors = validateEmailVerificationConfirmedForm({
-      email,
-      password,
-    });
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      if (error.status === 403) {
-        setNeedsVerification(true);
-        setNetworkErrors(["Please verify your email before signing in."]);
-        return;
-      }
-
-      setNetworkErrors([error.message ?? "Sign in failed"]);
-      return;
-    }
-
-    setToken(data.token);
-
-    useStore.setState((state) => ({
-      ...state,
-      isAuthenticated: true,
-      isAdmin: data.user.isAdmin,
-    }));
   }
 
   async function handleResendVerification() {
@@ -122,7 +84,6 @@ export function useEmailVerificationConfirmed() {
     resendStatus,
     handleEmailChange,
     handlePasswordChange,
-    handleSubmit,
     handleResendVerification,
   };
 }

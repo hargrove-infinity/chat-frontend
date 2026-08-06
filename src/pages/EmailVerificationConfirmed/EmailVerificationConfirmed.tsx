@@ -1,3 +1,4 @@
+import { Form } from "react-router-dom";
 import styles from "./EmailVerificationConfirmed.module.css";
 import { useEmailVerificationConfirmed } from "./EmailVerificationConfirmed.hooks";
 
@@ -12,7 +13,6 @@ export function EmailVerificationConfirmed() {
     resendStatus,
     handleEmailChange,
     handlePasswordChange,
-    handleSubmit,
     handleResendVerification,
   } = useEmailVerificationConfirmed();
 
@@ -25,7 +25,7 @@ export function EmailVerificationConfirmed() {
           Your email has been successfully verified. Sign in to continue.
         </p>
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <Form className={styles.form} method="post" noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="email">
               Email
@@ -33,6 +33,7 @@ export function EmailVerificationConfirmed() {
 
             <input
               id="email"
+              name="email"
               type="email"
               value={email}
               disabled={isSubmitting}
@@ -55,6 +56,7 @@ export function EmailVerificationConfirmed() {
 
             <input
               id="password"
+              name="password"
               type="password"
               value={password}
               disabled={isSubmitting}
@@ -112,7 +114,7 @@ export function EmailVerificationConfirmed() {
 
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
-        </form>
+        </Form>
       </div>
     </div>
   );
