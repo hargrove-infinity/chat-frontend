@@ -50,7 +50,7 @@ export async function emailVerificationConfirmedAction({
   useStore.setState((state) => ({
     ...state,
     isAuthenticated: true,
-    isAdmin: data.user.isAdmin,
+    user: data.user,
   }));
 
   return {};
