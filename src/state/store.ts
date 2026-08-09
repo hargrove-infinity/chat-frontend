@@ -12,6 +12,7 @@ import {
   initialUsersState,
   type UsersSlice,
 } from "./usersSlice";
+import { authClient } from "../lib/auth";
 
 export type StoreState = AppSlice &
   AuthSlice &
@@ -25,7 +26,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
   ...createAuthSlice(set, get, api),
   ...createChatsSlice(set, get, api),
   ...createUsersSlice(set, get, api),
-  logout: () => {
+  logout: async () => {
     const { chatSocket } = get();
 
     if (chatSocket?.connected) {
@@ -39,5 +40,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       ...initialUsersState,
     });
     deleteToken();
+
+    await authClient.signOut();
   },
 }));
