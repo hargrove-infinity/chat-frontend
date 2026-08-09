@@ -88,7 +88,6 @@ const useChatLogs = () => {
 const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
   const { chatId } = useParams();
   const chatIdRef = useRef(chatId);
-  const userId = useStore((state) => state.user?.id);
 
   const setChatSocket = useStore((state) => state.setChatSocket);
 
@@ -159,8 +158,8 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
 
         const newMessage = {
           ...msg,
-          isMine: userId === msg.userId,
-          read: userId === msg.userId,
+          isMine: useStore.getState().user?.id === msg.userId,
+          read: useStore.getState().user?.id === msg.userId,
           // Messages from server are already sent successfully, no error
           error: null,
         };
@@ -226,7 +225,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
         message: error.message,
         name: error.name,
         socketId: chatSocket.id ?? null,
-        userId,
+        userId: useStore.getState().user?.id,
         event: "connect_error",
         namespace: CHAT_NAMESPACE,
         source: "frontend",
