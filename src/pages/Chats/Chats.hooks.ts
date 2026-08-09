@@ -529,7 +529,7 @@ const useChatUserProfile = () => {
   const logout = useStore((state) => state.logout);
 
   return {
-    user: user ? { id: user.id, name: user.name, email: user.name } : null,
+    user: user ? { id: user.id, name: user.name, email: user.email } : null,
     logout,
   };
 };
