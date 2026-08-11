@@ -6,7 +6,7 @@ import type { StoreState } from "./store";
 export const initialAuthState = {
   isAuthenticated: !!getToken(),
   user: null,
-  isPending: false,
+  isPending: true,
 };
 
 export interface AuthSlice {

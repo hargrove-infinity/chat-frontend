@@ -33,14 +33,15 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       chatSocket.disconnect();
     }
 
+    await authClient.signOut();
+
     set({
       ...initialAppState,
       ...initialAuthState,
       ...initialChatsState,
       ...initialUsersState,
     });
-    deleteToken();
 
-    await authClient.signOut();
+    deleteToken();
   },
 }));
