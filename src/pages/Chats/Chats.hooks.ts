@@ -90,6 +90,7 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
   const chatIdRef = useRef(chatId);
 
   const setChatSocket = useStore((state) => state.setChatSocket);
+  const getChats = useStore((state) => state.getChats);
 
   useEffect(() => {
     chatIdRef.current = chatId;
@@ -142,41 +143,55 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
       });
     };
 
-    const onChatNewMessage = (msg: MessageDTO) => {
-      useStore.setState((state) => {
-        const updatedChats = state.chats?.map((chat) => {
-          if (chat.id === msg.chatId) {
-            return {
-              ...chat,
-              lastMessage: msg.content,
-              unreadMessages: chat.unreadMessages + 1,
-            };
-          }
+    const onChatNewMessage = async (msg: MessageDTO) => {
+      const state = useStore.getState();
+      const chatExists = state.chats?.some((chat) => chat.id === msg.chatId);
 
-          return chat;
+      // Problem: If this is the first message of a chat that was just
+      // created, that chat isn't in state.chats yet, so this user won't
+      // see it appear in their chat list even though their socket is now
+      // receiving messages for it.
+      // Solution: Refetch the chat list so the new chat shows up, instead
+      // of trying to merge/update a chat that doesn't exist in state yet.
+      if (!chatExists) {
+        await getChats();
+      } else {
+        useStore.setState((state) => {
+          const updatedChats = state.chats?.map((chat) => {
+            if (chat.id === msg.chatId) {
+              return {
+                ...chat,
+                lastMessage: msg.content,
+                unreadMessages: chat.unreadMessages + 1,
+              };
+            }
+
+            return chat;
+          });
+
+          const newMessage = {
+            ...msg,
+            isMine: useStore.getState().user?.id === msg.userId,
+            read: useStore.getState().user?.id === msg.userId,
+            // Messages from server are already sent successfully, no error
+            error: null,
+          };
+
+          return {
+            chats: updatedChats,
+            messages:
+              // Only append the new message to the store if the user is currently
+              // viewing this chat and messages have finished loading. Otherwise we'd
+              // either mix messages from different chats into state.messages, or
+              // insert the new message before the initial fetch completes — causing
+              // duplicates once getMessagesByChat resolves.
+              chatIdRef.current === msg.chatId &&
+              !state.loadingGetMessagesByChat
+                ? [...(state.messages || []), newMessage]
+                : state.messages,
+          };
         });
-
-        const newMessage = {
-          ...msg,
-          isMine: useStore.getState().user?.id === msg.userId,
-          read: useStore.getState().user?.id === msg.userId,
-          // Messages from server are already sent successfully, no error
-          error: null,
-        };
-
-        return {
-          chats: updatedChats,
-          messages:
-            // Only append the new message to the store if the user is currently
-            // viewing this chat and messages have finished loading. Otherwise we'd
-            // either mix messages from different chats into state.messages, or
-            // insert the new message before the initial fetch completes — causing
-            // duplicates once getMessagesByChat resolves.
-            chatIdRef.current === msg.chatId && !state.loadingGetMessagesByChat
-              ? [...(state.messages || []), newMessage]
-              : state.messages,
-        };
-      });
+      }
     };
 
     const onNotifyAuthorMessageWasRead = (payload: ReadReceiptPayload) => {
