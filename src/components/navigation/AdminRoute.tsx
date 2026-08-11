@@ -1,13 +1,15 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { LOGIN } from "../../constants/routes";
+import { SIGN_IN } from "../../constants/routes";
 import { useStore } from "../../state/store";
 
 export const AdminRoute = () => {
-  const { isAuthenticated, isAdmin } = useStore();
+  const { isAuthenticated, user, isPending } = useStore();
 
-  return isAuthenticated && isAdmin ? (
+  if (isPending) return null;
+
+  return isAuthenticated && user?.isAdmin ? (
     <Outlet />
   ) : (
-    <Navigate to={LOGIN} replace />
+    <Navigate to={SIGN_IN} replace />
   );
 };

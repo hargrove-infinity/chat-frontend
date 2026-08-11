@@ -1,4 +1,4 @@
-import { LOGIN, CHATS, METRICS } from "../constants/routes";
+import { SIGN_IN, CHATS, METRICS } from "../constants/routes";
 
 export const getDefaultPath = ({
   isAuthenticated,
@@ -15,5 +15,5 @@ export const getDefaultPath = ({
     return CHATS;
   }
 
-  return LOGIN;
+  return SIGN_IN;
 };

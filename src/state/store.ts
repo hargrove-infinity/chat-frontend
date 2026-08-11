@@ -12,8 +12,9 @@ import {
   initialUsersState,
   type UsersSlice,
 } from "./usersSlice";
+import { authClient } from "../lib/auth";
 
-type StoreState = AppSlice &
+export type StoreState = AppSlice &
   AuthSlice &
   ChatsSlice &
   UsersSlice & {
@@ -25,12 +26,14 @@ export const useStore = create<StoreState>()((set, get, api) => ({
   ...createAuthSlice(set, get, api),
   ...createChatsSlice(set, get, api),
   ...createUsersSlice(set, get, api),
-  logout: () => {
+  logout: async () => {
     const { chatSocket } = get();
 
     if (chatSocket?.connected) {
       chatSocket.disconnect();
     }
+
+    await authClient.signOut();
 
     set({
       ...initialAppState,
@@ -38,6 +41,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       ...initialChatsState,
       ...initialUsersState,
     });
+
     deleteToken();
   },
 }));

@@ -735,6 +735,7 @@
 .createChatButton:disabled {
   background-color: var(--bg-surface-2);
   color: var(--text-disabled);
+  border: 1px solid var(--border-disabled);
   cursor: not-allowed;
 }
 
@@ -754,7 +755,7 @@
 .createChatSpinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid var(--border-spinner);
   border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: createChatSpin 0.7s linear infinite;

@@ -36,6 +36,7 @@
 
   --text-disabled: #5c5f6a;
   --border-disabled: #2a2d35;
+  --border-spinner: #ffffff59;
 
   font-family: "Montserrat", system-ui, sans-serif;
   line-height: 1.5;
