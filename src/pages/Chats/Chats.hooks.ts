@@ -165,33 +165,28 @@ const useChatSocket = (logsRef: RefObject<LogInput[]>) => {
                 unreadMessages: chat.unreadMessages + 1,
               };
             }
-
             return chat;
           });
-
-          const newMessage = {
-            ...msg,
-            isMine: useStore.getState().user?.id === msg.userId,
-            read: useStore.getState().user?.id === msg.userId,
-            // Messages from server are already sent successfully, no error
-            error: null,
-          };
-
-          return {
-            chats: updatedChats,
-            messages:
-              // Only append the new message to the store if the user is currently
-              // viewing this chat and messages have finished loading. Otherwise we'd
-              // either mix messages from different chats into state.messages, or
-              // insert the new message before the initial fetch completes — causing
-              // duplicates once getMessagesByChat resolves.
-              chatIdRef.current === msg.chatId &&
-              !state.loadingGetMessagesByChat
-                ? [...(state.messages || []), newMessage]
-                : state.messages,
-          };
+          return { chats: updatedChats };
         });
       }
+
+      useStore.setState((state) => {
+        if (
+          chatIdRef.current !== msg.chatId ||
+          state.loadingGetMessagesByChat
+        ) {
+          return state;
+        }
+
+        const newMessage = {
+          ...msg,
+          isMine: useStore.getState().user?.id === msg.userId,
+          read: useStore.getState().user?.id === msg.userId,
+          error: null,
+        };
+        return { messages: [...(state.messages || []), newMessage] };
+      });
     };
 
     const onNotifyAuthorMessageWasRead = (payload: ReadReceiptPayload) => {
