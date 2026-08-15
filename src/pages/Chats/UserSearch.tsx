@@ -134,8 +134,7 @@ export const UserSearch: FC<UserSearchProps> = ({
 
                   <div className={styles.resultContent}>
                     <div className={styles.resultName}>
-                      {highlightMatch(u.firstName, text)}{" "}
-                      {highlightMatch(u.lastName, text)}
+                      {highlightMatch(u.name, text)}
                     </div>
                     <div className={styles.resultEmail}>
                       {highlightMatch(u.email, text)}
