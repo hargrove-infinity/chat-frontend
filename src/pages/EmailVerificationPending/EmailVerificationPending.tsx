@@ -23,11 +23,10 @@ export function EmailVerificationPending() {
         <h1 className={styles.title}>Check your email</h1>
 
         <p className={styles.description}>
-          We have sent a verification email to your inbox.
+          We have sent an email to your inbox.
           <br />
           <br />
-          Open the email and click the verification link to confirm your
-          account.
+          Follow the instructions in that email to continue.
           <br />
           <br />
           Once your email is verified, you will be able to sign in.
